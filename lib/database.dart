@@ -117,6 +117,10 @@ class AppDatabase extends _$AppDatabase {
     return (delete(recipeProducts)..where((tbl) => tbl.id.equals(id))).go();
   }
 
+  Future<int> deleteRecipeProductsByRecipeId(int recipeId){
+    return (delete(recipeProducts)..where((tbl) => tbl.recipeId.equals(recipeId))).go();
+  }
+
   @override
   MigrationStrategy get migration => MigrationStrategy(
     beforeOpen: (details) async {

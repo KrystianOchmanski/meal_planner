@@ -53,7 +53,7 @@ class _AddOrEditRecipeScreenState extends State<AddOrEditRecipeScreen> {
             style: GoogleFonts.poppins()),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         actions: [
-          IconButton(onPressed: null, icon: const Icon(Icons.check))
+          IconButton(onPressed: saveRecipe, icon: const Icon(Icons.check))
         ],
       ),
       body: SingleChildScrollView(
@@ -342,4 +342,51 @@ class _AddOrEditRecipeScreenState extends State<AddOrEditRecipeScreen> {
     });
   }
 
+
+  Future<void> saveRecipe() async {
+    // walidacja formularza
+    if(!_formKey.currentState!.validate()){
+      return;
+    }
+
+    if(_recipeProductsCompanion.isNotEmpty){
+      //dodanie nowego przepisu
+      if(widget.recipe == null) {
+        final addedRecipeId = await widget.database.insertRecipe(RecipesCompanion(
+            title: Value(_titleController.text),
+            servings: Value(_servings),
+            instruction: Value(_instructionController.text)
+        ));
+
+        // dodanie powiązanych składników
+        await saveRecipeProducts(addedRecipeId);
+      }
+      // edycja istniejącego przepisu
+      else {
+        await widget.database.updateRecipe(
+          widget.recipe!.copyWith(
+            title: _titleController.text,
+            servings: _servings,
+            instruction: Value(_instructionController.text)
+          )
+        );
+
+        // usunięcie starych składników i zapisanie nowych
+        await widget.database.deleteRecipeProductsByRecipeId(widget.recipe!.id);
+        await saveRecipeProducts(widget.recipe!.id);
+      }
+    }
+    
+    Navigator.pop(context);
+  }
+
+  Future<void> saveRecipeProducts(int addedRecipeId) async {
+    for(var product in _recipeProductsCompanion){
+      await widget.database.insertRecipeProduct(RecipeProductsCompanion(
+        recipeId: Value(addedRecipeId),
+        productId: product.productId,
+        quantity: product.quantity
+      ));
+    }
+  }
 }
