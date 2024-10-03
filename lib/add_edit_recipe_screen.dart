@@ -2,27 +2,25 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:meal_planner/database.dart';
-import 'package:meal_planner/model/recipe.dart';
-import 'package:meal_planner/model/recipe_product.dart';
 import 'package:intl/intl.dart';
+import 'package:drift/drift.dart' hide Column;
 
-import 'model/product.dart';
-
-class AddRecipeScreen extends StatefulWidget {
+class AddOrEditRecipeScreen extends StatefulWidget {
+  final AppDatabase database;
   final Recipe? recipe;
 
-  const AddRecipeScreen({super.key, this.recipe});
+  const AddOrEditRecipeScreen({super.key, this.recipe, required this.database});
 
   @override
-  State<AddRecipeScreen> createState() => _AddRecipeScreenState();
+  State<AddOrEditRecipeScreen> createState() => _AddOrEditRecipeScreenState();
 }
 
-class _AddRecipeScreenState extends State<AddRecipeScreen> {
+class _AddOrEditRecipeScreenState extends State<AddOrEditRecipeScreen> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _instructionController = TextEditingController();
   int _servings = 1;
-  List<RecipeProduct> _recipeProducts =  [];
+  List<RecipeProductsCompanion> _recipeProductsCompanion = [];
 
   List<Product> _allProducts = [];
   NumberFormat formatter = NumberFormat('#.##');
@@ -37,7 +35,7 @@ class _AddRecipeScreenState extends State<AddRecipeScreen> {
       _titleController.text = widget.recipe!.title;
       _instructionController.text = (widget.recipe!.instruction ?? '');
       _servings = widget.recipe!.servings;
-      _recipeProducts = widget.recipe!.recipeProducts;
+      _loadRecipeProducts();
     }
   }
 
@@ -55,7 +53,7 @@ class _AddRecipeScreenState extends State<AddRecipeScreen> {
             style: GoogleFonts.poppins()),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         actions: [
-          IconButton(onPressed: saveRecipe, icon: const Icon(Icons.check))
+          IconButton(onPressed: null, icon: const Icon(Icons.check))
         ],
       ),
       body: SingleChildScrollView(
@@ -118,7 +116,7 @@ class _AddRecipeScreenState extends State<AddRecipeScreen> {
                         icon: const Icon(Icons.add_circle_outline))
                   ],
                 ),
-                if (_recipeProducts.isEmpty) const Center(
+                if (_recipeProductsCompanion.isEmpty) const Center(
                   child: Padding(
                     padding: EdgeInsets.only(bottom: 15),
                     child: Text('Dodaj składniki', style: TextStyle(color: Colors.grey)),
@@ -126,7 +124,7 @@ class _AddRecipeScreenState extends State<AddRecipeScreen> {
                 ) else ListView.builder(
                     shrinkWrap: true, //aby ListView zajmował minimalną ilość miejsca
                     physics: const NeverScrollableScrollPhysics(),
-                    itemCount: _recipeProducts.length,
+                    itemCount: _recipeProductsCompanion.length,
                     itemBuilder: (context, index) {
                       return Padding(
                         padding: const EdgeInsets.only(top: 10, bottom: 10),
@@ -136,13 +134,13 @@ class _AddRecipeScreenState extends State<AddRecipeScreen> {
                               width: 110,
                               child: Text(
                                   _allProducts
-                                      .firstWhere((Product product){return product.id == _recipeProducts[index].productId;})
+                                      .firstWhere((Product product){return product.id == _recipeProductsCompanion[index].productId.value;})
                                       .name,
                                 style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
                               ),
                             ),
                             Text(
-                                  '${formatter.format(_recipeProducts[index].quantity)} ${_allProducts.firstWhere((product) => product.id == _recipeProducts[index].productId).unit}')
+                                  '${formatter.format(_recipeProductsCompanion[index].quantity.value)} ${_allProducts.firstWhere((product) => product.id == _recipeProductsCompanion[index].productId.value).unit}')
                             ],
                         ),
                       );
@@ -288,59 +286,21 @@ class _AddRecipeScreenState extends State<AddRecipeScreen> {
   }
 
   void loadProductsFromDb() async {
-    _allProducts = await DatabaseHelper().getProducts();
+    var products = await widget.database.getAllProducts();
     setState(() {
+      _allProducts = products;
     });
   }
 
   void addRecipeProduct(int productToAddId, TextEditingController productQuantityController) {
     double quantity = double.parse(productQuantityController.text);
 
-    RecipeProduct newRecipeProduct = RecipeProduct(productId: productToAddId, quantity: quantity);
+    RecipeProductsCompanion newRecipeProduct = RecipeProductsCompanion(
+        productId: Value(productToAddId),
+        quantity: Value(quantity));
     setState(() {
-      _recipeProducts.add(newRecipeProduct);
+      _recipeProductsCompanion.add(newRecipeProduct);
     });
-  }
-
-  saveRecipe() async {
-    if(_formKey.currentState?.validate() ?? false){
-      _formKey.currentState?.save();
-
-      if(_recipeProducts.isEmpty){
-        showDialog(
-            context: context,
-            builder: (context) {
-              return AlertDialog(
-                content: const Text('Dodaj składniki!',
-                  style: TextStyle(fontSize: 16)),
-                actions: [
-                  TextButton(
-                      onPressed: (){
-                        Navigator.pop(context);
-                      },
-                      child: const Text('OK'))
-                ],
-              );
-            });
-        return;
-      }
-
-      Recipe recipeToAdd = Recipe(title: _titleController.text, servings: _servings, recipeProducts: _recipeProducts, instruction: _instructionController.text);
-
-      DatabaseHelper db = DatabaseHelper();
-      int? result = await db.insertRecipe(recipeToAdd);
-
-      if(result != null){
-        Navigator.of(context).pop();
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Przepis dodany pomyślnie'))
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Wystąpił błąd przy dodawaniu przepisu'))
-        );
-      }
-    }
   }
 
   void backBtnPressed() {
@@ -369,4 +329,17 @@ class _AddRecipeScreenState extends State<AddRecipeScreen> {
       },
     );
   }
+
+  void _loadRecipeProducts() async {
+    final products = await widget.database.getProductsForRecipe(widget.recipe!.id);
+    setState(() {
+      _recipeProductsCompanion = products.map((product) {
+        return RecipeProductsCompanion(
+          productId: Value(product.productId),
+          quantity: Value(product.quantity),
+        );
+      }).toList();
+    });
+  }
+
 }

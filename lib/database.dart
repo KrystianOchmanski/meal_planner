@@ -1,220 +1,230 @@
-import 'package:meal_planner/model/product.dart';
-import 'package:meal_planner/model/recipe.dart';
-import 'package:sqflite/sqflite.dart';
-import 'package:path/path.dart';
+import 'package:drift/drift.dart';
+import 'package:drift_flutter/drift_flutter.dart';
 
-class DatabaseHelper {
-  static final DatabaseHelper _instance = DatabaseHelper._internal();
-  static Database? _database;
+part 'database.g.dart';
 
-  factory DatabaseHelper() {
-    return _instance;
+class Products extends Table {
+  IntColumn get id => integer().autoIncrement()(); // Primary Key
+  TextColumn get name => text().withLength(min: 1, max: 255)();
+  TextColumn get category => text().withLength(min: 1, max: 255)();
+  TextColumn get unit => text().withLength(min: 1, max: 50)();
+}
+
+class Recipes extends Table {
+  IntColumn get id => integer().autoIncrement()(); // Primary Key
+  TextColumn get title => text().withLength(min: 1, max: 255)();
+  IntColumn get servings => integer()();
+  TextColumn get instruction => text().nullable()();
+}
+
+class RecipeProducts extends Table {
+  IntColumn get id => integer().autoIncrement()(); // Primary Key
+  IntColumn get recipeId => 
+      integer().references(Recipes, #id)(); // Foreign Key
+  IntColumn get productId =>
+      integer().references(Products, #id)(); // Foreign Key
+  RealColumn get quantity => real()();
+}
+
+@DriftDatabase(tables: [Products, Recipes, RecipeProducts])
+class AppDatabase extends _$AppDatabase {
+  AppDatabase() : super(_openConnection());
+
+  @override
+  int get schemaVersion => 1;
+
+  static QueryExecutor _openConnection() {
+    return driftDatabase(name: 'my_database');
   }
 
-  DatabaseHelper._internal();
-
-  Future<Database> get database async {
-    if (_database != null) return _database!;
-
-    _database = await _initDatabase();
-    return _database!;
+  // CRUD
+  //  Products
+  //    CREATE
+  Future<int> insertProduct(ProductsCompanion product) {
+    return into(products).insert(product);
   }
 
-  Future<Database> _initDatabase() async {
-    String path = join(await getDatabasesPath(), 'meal_planner_database.db');
-    deleteDatabase(path); //usuwanie bazy (tylko do testów)
-
-    return await openDatabase(
-      path,
-      version: 1,
-      onCreate: _onCreate,
-    );
+//      READ
+  Future<List<Product>> getAllProducts() {
+    return select(products).get();
   }
 
-  Future<void> _onCreate(Database db, int version) async {
-    await db.execute('''
-      CREATE TABLE Products(
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT NOT NUll,
-        category TEXT NOT NULL,
-        unit TEXT NOT NULL
-      )
-    ''');
-
-    await db.execute('''
-      CREATE TABLE Recipes(
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        title TEXT NOT NULL,
-        servings INTEGER NOT NULL,
-        instruction TEXT
-      )
-    ''');
-
-    await db.execute('''
-      CREATE TABLE RecipeProducts(
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        recipe_id INTEGER NOT NULL,
-        product_id INTEGER NOT NULL,
-        quantity REAL NOT NULL,
-        FOREIGN KEY(recipe_id) REFERENCES Recipes(id) ON DELETE CASCADE,
-        FOREIGN KEY(product_id) REFERENCES Products(id) ON DELETE CASCADE
-      )
-    ''');
-
-    await insertStandardProducts(db);
+  Future<Product?> getProductById(int id) {
+    return (select(products)..where((tbl) => tbl.id.equals(id))).getSingleOrNull();
   }
 
-  Future<int?> insertProduct(Product product) async {
-    try {
-      Database db = await database;
-      return await db.insert('Products', product.toMap());
-    } catch (e) {
-      print('Error inserting product: $e');
-      return null;
-    }
+//      UPDATE
+  Future<bool> updateProduct(Product product) {
+    return update(products).replace(product);
   }
 
-  Future<int?> insertRecipe(Recipe recipe) async {
-    try {
-      Database db = await database;
-      return await db.insert('Recipes', recipe.toMap());
-    } catch (e) {
-      print('Error inserting recipe: $e');
-      return null;
-    }
+//      DELETE
+  Future<int> deleteProduct(int id) {
+    return (delete(products)..where((tbl) => tbl.id.equals(id))).go();
   }
 
-  Future<List<Product>> getProducts() async {
-    List<Product> products = [];
-    try {
-      Database db = await database;
-      var productMaps = await db.query('Products');
-      for (var prodMap in productMaps) {
-        products.add(Product.fromMap(prodMap));
+  //  Recipes
+  //    CREATE
+  Future<int> insertRecipe(RecipesCompanion recipe) {
+    return into(recipes).insert(recipe);
+  }
+
+//      READ
+  Future<List<Recipe>> getAllRecipes() {
+    return select(recipes).get();
+  }
+
+  Future<Recipe?> getRecipeById(int id) {
+    return (select(recipes)..where((tbl) => tbl.id.equals(id))).getSingleOrNull();
+  }
+
+//      UPDATE
+  Future<bool> updateRecipe(Recipe recipe) {
+    return update(recipes).replace(recipe);
+  }
+
+//      DELETE
+  Future<int> deleteRecipe(int id) {
+    return (delete(recipes)..where((tbl) => tbl.id.equals(id))).go();
+  }
+
+  //  RecipeProducts
+  //    CREATE
+  Future<int> insertRecipeProduct(RecipeProductsCompanion recipeProduct) {
+    return into(recipeProducts).insert(recipeProduct);
+  }
+
+//      READ
+  Future<List<RecipeProduct>> getAllRecipeProducts() {
+    return select(recipeProducts).get();
+  }
+
+  Future<List<RecipeProduct>> getProductsForRecipe(int recipeId) {
+    return (select(recipeProducts)..where((tbl) => tbl.recipeId.equals(recipeId))).get();
+  }
+
+  Future<RecipeProduct?> getRecipeProductById(int id) {
+    return (select(recipeProducts)..where((tbl) => tbl.id.equals(id))).getSingleOrNull();
+  }
+
+//      UPDATE
+  Future<bool> updateRecipeProduct(RecipeProduct recipeProduct) {
+    return update(recipeProducts).replace(recipeProduct);
+  }
+
+//      DELETE
+  Future<int> deleteRecipeProduct(int id) {
+    return (delete(recipeProducts)..where((tbl) => tbl.id.equals(id))).go();
+  }
+
+  @override
+  MigrationStrategy get migration => MigrationStrategy(
+    beforeOpen: (details) async {
+      // Sprawdzenie, czy baza danych została właśnie utworzona
+      if(details.wasCreated){
+        final initialProducts = [
+          ProductsCompanion(name: Value('Ziemniaki'), category: Value('Warzywa'), unit: Value('g')),
+          ProductsCompanion(name: Value('Pomidor'), category: Value('Warzywa'), unit: Value('szt')),
+          ProductsCompanion(name: Value('Ogórek'), category: Value('Warzywa'), unit: Value('szt')),
+          ProductsCompanion(name: Value('Marchew'), category: Value('Warzywa'), unit: Value('g')),
+          ProductsCompanion(name: Value('Cebula'), category: Value('Warzywa'), unit: Value('g')),
+          ProductsCompanion(name: Value('Czosnek'), category: Value('Warzywa'), unit: Value('szt')),
+          ProductsCompanion(name: Value('Papryka'), category: Value('Warzywa'), unit: Value('szt')),
+          ProductsCompanion(name: Value('Brokuł'), category: Value('Warzywa'), unit: Value('szt')),
+          ProductsCompanion(name: Value('Kalafior'), category: Value('Warzywa'), unit: Value('szt')),
+          ProductsCompanion(name: Value('Szpinak'), category: Value('Warzywa'), unit: Value('g')),
+          ProductsCompanion(name: Value('Sałata'), category: Value('Warzywa'), unit: Value('szt')),
+          ProductsCompanion(name: Value('Kapusta'), category: Value('Warzywa'), unit: Value('g')),
+          ProductsCompanion(name: Value('Dynia'), category: Value('Warzywa'), unit: Value('g')),
+          ProductsCompanion(name: Value('Bakłażan'), category: Value('Warzywa'), unit: Value('szt')),
+          ProductsCompanion(name: Value('Cukinia'), category: Value('Warzywa'), unit: Value('g')),
+          ProductsCompanion(name: Value('Rzodkiewka'), category: Value('Warzywa'), unit: Value('g')),
+          ProductsCompanion(name: Value('Por'), category: Value('Warzywa'), unit: Value('szt')),
+          ProductsCompanion(name: Value('Burak'), category: Value('Warzywa'), unit: Value('g')),
+          ProductsCompanion(name: Value('Banany'), category: Value('Owoce'), unit: Value('szt')),
+          ProductsCompanion(name: Value('Jabłka'), category: Value('Owoce'), unit: Value('szt')),
+          ProductsCompanion(name: Value('Pomarańcze'), category: Value('Owoce'), unit: Value('szt')),
+          ProductsCompanion(name: Value('Cytryny'), category: Value('Owoce'), unit: Value('szt')),
+          ProductsCompanion(name: Value('Truskawki'), category: Value('Owoce'), unit: Value('g')),
+          ProductsCompanion(name: Value('Gruszki'), category: Value('Owoce'), unit: Value('szt')),
+          ProductsCompanion(name: Value('Winogrona'), category: Value('Owoce'), unit: Value('g')),
+          ProductsCompanion(name: Value('Brzoskwinie'), category: Value('Owoce'), unit: Value('szt')),
+          ProductsCompanion(name: Value('Morele'), category: Value('Owoce'), unit: Value('szt')),
+          ProductsCompanion(name: Value('Śliwki'), category: Value('Owoce'), unit: Value('szt')),
+          ProductsCompanion(name: Value('Maliny'), category: Value('Owoce'), unit: Value('g')),
+          ProductsCompanion(name: Value('Jagody'), category: Value('Owoce'), unit: Value('g')),
+          ProductsCompanion(name: Value('Ananas'), category: Value('Owoce'), unit: Value('szt')),
+          ProductsCompanion(name: Value('Mango'), category: Value('Owoce'), unit: Value('szt')),
+          ProductsCompanion(name: Value('Arbuz'), category: Value('Owoce'), unit: Value('szt')),
+          ProductsCompanion(name: Value('Melon'), category: Value('Owoce'), unit: Value('szt')),
+          ProductsCompanion(name: Value('Kiwi'), category: Value('Owoce'), unit: Value('szt')),
+          ProductsCompanion(name: Value('Mleko'), category: Value('Nabiał'), unit: Value('szt')),
+          ProductsCompanion(name: Value('Masło'), category: Value('Nabiał'), unit: Value('g')),
+          ProductsCompanion(name: Value('Ser żółty'), category: Value('Nabiał'), unit: Value('g')),
+          ProductsCompanion(name: Value('Ser biały'), category: Value('Nabiał'), unit: Value('g')),
+          ProductsCompanion(name: Value('Jogurt'), category: Value('Nabiał'), unit: Value('g')),
+          ProductsCompanion(name: Value('Śmietana'), category: Value('Nabiał'), unit: Value('g')),
+          ProductsCompanion(name: Value('Twaróg'), category: Value('Nabiał'), unit: Value('g')),
+          ProductsCompanion(name: Value('Serek wiejski'), category: Value('Nabiał'), unit: Value('g')),
+          ProductsCompanion(name: Value('Kefir'), category: Value('Nabiał'), unit: Value('g')),
+          ProductsCompanion(name: Value('Maślanka'), category: Value('Nabiał'), unit: Value('g')),
+          ProductsCompanion(name: Value('Kurczak'), category: Value('Mięso'), unit: Value('g')),
+          ProductsCompanion(name: Value('Wołowina'), category: Value('Mięso'), unit: Value('g')),
+          ProductsCompanion(name: Value('Wieprzowina'), category: Value('Mięso'), unit: Value('g')),
+          ProductsCompanion(name: Value('Indyk'), category: Value('Mięso'), unit: Value('g')),
+          ProductsCompanion(name: Value('Kiełbasa'), category: Value('Mięso'), unit: Value('g')),
+          ProductsCompanion(name: Value('Szynka'), category: Value('Mięso'), unit: Value('g')),
+          ProductsCompanion(name: Value('Boczek'), category: Value('Mięso'), unit: Value('g')),
+          ProductsCompanion(name: Value('Ryby'), category: Value('Ryby'), unit: Value('g')),
+          ProductsCompanion(name: Value('Łosoś'), category: Value('Ryby'), unit: Value('g')),
+          ProductsCompanion(name: Value('Tuńczyk'), category: Value('Ryby'), unit: Value('g')),
+          ProductsCompanion(name: Value('Makrela'), category: Value('Ryby'), unit: Value('g')),
+          ProductsCompanion(name: Value('Śledź'), category: Value('Ryby'), unit: Value('g')),
+          ProductsCompanion(name: Value('Chleb'), category: Value('Pieczywo'), unit: Value('szt')),
+          ProductsCompanion(name: Value('Bułki'), category: Value('Pieczywo'), unit: Value('szt')),
+          ProductsCompanion(name: Value('Bagietka'), category: Value('Pieczywo'), unit: Value('szt')),
+          ProductsCompanion(name: Value('Tortilla'), category: Value('Pieczywo'), unit: Value('szt')),
+          ProductsCompanion(name: Value('Mąka'), category: Value('Produkty zbożowe'), unit: Value('g')),
+          ProductsCompanion(name: Value('Ryż'), category: Value('Produkty zbożowe'), unit: Value('g')),
+          ProductsCompanion(name: Value('Makaron'), category: Value('Produkty zbożowe'), unit: Value('g')),
+          ProductsCompanion(name: Value('Kasza'), category: Value('Produkty zbożowe'), unit: Value('g')),
+          ProductsCompanion(name: Value('Płatki owsiane'), category: Value('Produkty zbożowe'), unit: Value('g')),
+          ProductsCompanion(name: Value('Woda'), category: Value('Napoje'), unit: Value('g')),
+          ProductsCompanion(name: Value('Sok pomarańczowy'), category: Value('Napoje'), unit: Value('g')),
+          ProductsCompanion(name: Value('Sok jabłkowy'), category: Value('Napoje'), unit: Value('g')),
+          ProductsCompanion(name: Value('Herbata'), category: Value('Napoje'), unit: Value('g')),
+          ProductsCompanion(name: Value('Kawa'), category: Value('Napoje'), unit: Value('g')),
+          ProductsCompanion(name: Value('Cola'), category: Value('Napoje'), unit: Value('szt')),
+          ProductsCompanion(name: Value('Piwo'), category: Value('Napoje'), unit: Value('szt')),
+          ProductsCompanion(name: Value('Wino'), category: Value('Napoje'), unit: Value('szt')),
+          ProductsCompanion(name: Value('Sól'), category: Value('Przyprawy'), unit: Value('g')),
+          ProductsCompanion(name: Value('Pieprz'), category: Value('Przyprawy'), unit: Value('g')),
+          ProductsCompanion(name: Value('Papryka słodka'), category: Value('Przyprawy'), unit: Value('g')),
+          ProductsCompanion(name: Value('Cukier'), category: Value('Dodatki'), unit: Value('g')),
+          ProductsCompanion(name: Value('Miód'), category: Value('Dodatki'), unit: Value('g')),
+          ProductsCompanion(name: Value('Oliwa z oliwek'), category: Value('Dodatki'), unit: Value('g')),
+          ProductsCompanion(name: Value('Ocet balsamiczny'), category: Value('Dodatki'), unit: Value('g')),
+          ProductsCompanion(name: Value('Musztarda'), category: Value('Dodatki'), unit: Value('g')),
+          ProductsCompanion(name: Value('Majonez'), category: Value('Dodatki'), unit: Value('g')),
+          ProductsCompanion(name: Value('Ketchup'), category: Value('Dodatki'), unit: Value('g')),
+          ProductsCompanion(name: Value('Papier toaletowy'), category: Value('Domowe'), unit: Value('szt')),
+          ProductsCompanion(name: Value('Mydło'), category: Value('Domowe'), unit: Value('szt')),
+          ProductsCompanion(name: Value('Szampon'), category: Value('Domowe'), unit: Value('szt')),
+          ProductsCompanion(name: Value('Pasta do zębów'), category: Value('Domowe'), unit: Value('szt')),
+          ProductsCompanion(name: Value('Płyn do naczyń'), category: Value('Domowe'), unit: Value('szt')),
+          ProductsCompanion(name: Value('Proszek do prania'), category: Value('Domowe'), unit: Value('szt')),
+          ProductsCompanion(name: Value('Ręczniki papierowe'), category: Value('Domowe'), unit: Value('szt')),
+          ProductsCompanion(name: Value('Worki na śmieci'), category: Value('Domowe'), unit: Value('szt')),
+          ProductsCompanion(name: Value('Chusteczki higieniczne'), category: Value('Domowe'), unit: Value('szt')),
+          ProductsCompanion(name: Value('Ściereczki kuchenne'), category: Value('Domowe'), unit: Value('szt')),
+          ProductsCompanion(name: Value('Płyn do okien'), category: Value('Domowe'), unit: Value('szt')),
+        ];
+
+        // Wstawianie produktów do bazy danych
+        for (var product in initialProducts) {
+          await into(products).insert(product);
+        }
       }
-    } catch (e) {
-      print('Error fetching products: $e');
     }
-    return products;
-  }
-
-  Future<List<Recipe>> getRecipes() async {
-    List<Recipe> recipes = [];
-    try {
-      Database db = await database;
-      var recipeMaps = await db.query('Recipes');
-      for (var recMap in recipeMaps) {
-        recipes.add(Recipe.fromMap(recMap));
-      }
-    } catch (e) {
-      print('Error fetching recipes: $e');
-    }
-    return recipes;
-  }
-
-
-  Future<void> insertStandardProducts(Database db) async {
-    List<Product> standardProducts = [
-      Product(name: 'Ziemniaki', category: 'Warzywa', unit: 'g'),
-      Product(name: 'Pomidor', category: 'Warzywa', unit: 'szt'),
-      Product(name: 'Ogórek', category: 'Warzywa', unit: 'szt'),
-      Product(name: 'Marchew', category: 'Warzywa', unit: 'g'),
-      Product(name: 'Cebula', category: 'Warzywa', unit: 'g'),
-      Product(name: 'Czosnek', category: 'Warzywa', unit: 'szt'),
-      Product(name: 'Papryka', category: 'Warzywa', unit: 'szt'),
-      Product(name: 'Brokuł', category: 'Warzywa', unit: 'szt'),
-      Product(name: 'Kalafior', category: 'Warzywa', unit: 'szt'),
-      Product(name: 'Szpinak', category: 'Warzywa', unit: 'g'),
-      Product(name: 'Sałata', category: 'Warzywa', unit: 'szt'),
-      Product(name: 'Kapusta', category: 'Warzywa', unit: 'g'),
-      Product(name: 'Dynia', category: 'Warzywa', unit: 'g'),
-      Product(name: 'Bakłażan', category: 'Warzywa', unit: 'szt'),
-      Product(name: 'Cukinia', category: 'Warzywa', unit: 'g'),
-      Product(name: 'Rzodkiewka', category: 'Warzywa', unit: 'g'),
-      Product(name: 'Por', category: 'Warzywa', unit: 'szt'),
-      Product(name: 'Burak', category: 'Warzywa', unit: 'g'),
-      Product(name: 'Banany', category: 'Owoce', unit: 'szt'),
-      Product(name: 'Jabłka', category: 'Owoce', unit: 'szt'),
-      Product(name: 'Pomarańcze', category: 'Owoce', unit: 'szt'),
-      Product(name: 'Cytryny', category: 'Owoce', unit: 'szt'),
-      Product(name: 'Truskawki', category: 'Owoce', unit: 'g'),
-      Product(name: 'Gruszki', category: 'Owoce', unit: 'szt'),
-      Product(name: 'Winogrona', category: 'Owoce', unit: 'g'),
-      Product(name: 'Brzoskwinie', category: 'Owoce', unit: 'szt'),
-      Product(name: 'Morele', category: 'Owoce', unit: 'szt'),
-      Product(name: 'Śliwki', category: 'Owoce', unit: 'szt'),
-      Product(name: 'Maliny', category: 'Owoce', unit: 'g'),
-      Product(name: 'Jagody', category: 'Owoce', unit: 'g'),
-      Product(name: 'Ananas', category: 'Owoce', unit: 'szt'),
-      Product(name: 'Mango', category: 'Owoce', unit: 'szt'),
-      Product(name: 'Arbuz', category: 'Owoce', unit: 'szt'),
-      Product(name: 'Melon', category: 'Owoce', unit: 'szt'),
-      Product(name: 'Kiwi', category: 'Owoce', unit: 'szt'),
-      Product(name: 'Mleko', category: 'Nabiał', unit: 'szt'),
-      Product(name: 'Masło', category: 'Nabiał', unit: 'g'),
-      Product(name: 'Ser żółty', category: 'Nabiał', unit: 'g'),
-      Product(name: 'Ser biały', category: 'Nabiał', unit: 'g'),
-      Product(name: 'Jogurt', category: 'Nabiał', unit: 'g'),
-      Product(name: 'Śmietana', category: 'Nabiał', unit: 'g'),
-      Product(name: 'Twaróg', category: 'Nabiał', unit: 'g'),
-      Product(name: 'Serek wiejski', category: 'Nabiał', unit: 'g'),
-      Product(name: 'Kefir', category: 'Nabiał', unit: 'g'),
-      Product(name: 'Maślanka', category: 'Nabiał', unit: 'g'),
-      Product(name: 'Kurczak', category: 'Mięso', unit: 'g'),
-      Product(name: 'Wołowina', category: 'Mięso', unit: 'g'),
-      Product(name: 'Wieprzowina', category: 'Mięso', unit: 'g'),
-      Product(name: 'Indyk', category: 'Mięso', unit: 'g'),
-      Product(name: 'Kiełbasa', category: 'Mięso', unit: 'g'),
-      Product(name: 'Szynka', category: 'Mięso', unit: 'g'),
-      Product(name: 'Boczek', category: 'Mięso', unit: 'g'),
-      Product(name: 'Ryby', category: 'Ryby', unit: 'g'),
-      Product(name: 'Łosoś', category: 'Ryby', unit: 'g'),
-      Product(name: 'Tuńczyk', category: 'Ryby', unit: 'g'),
-      Product(name: 'Makrela', category: 'Ryby', unit: 'g'),
-      Product(name: 'Śledź', category: 'Ryby', unit: 'g'),
-      Product(name: 'Chleb', category: 'Pieczywo', unit: 'szt'),
-      Product(name: 'Bułki', category: 'Pieczywo', unit: 'szt'),
-      Product(name: 'Bagietka', category: 'Pieczywo', unit: 'szt'),
-      Product(name: 'Tortilla', category: 'Pieczywo', unit: 'szt'),
-      Product(name: 'Mąka', category: 'Produkty zbożowe', unit: 'g'),
-      Product(name: 'Ryż', category: 'Produkty zbożowe', unit: 'g'),
-      Product(name: 'Makaron', category: 'Produkty zbożowe', unit: 'g'),
-      Product(name: 'Kasza', category: 'Produkty zbożowe', unit: 'g'),
-      Product(name: 'Płatki owsiane', category: 'Produkty zbożowe', unit: 'g'),
-      Product(name: 'Woda', category: 'Napoje', unit: 'g'),
-      Product(name: 'Sok pomarańczowy', category: 'Napoje', unit: 'g'),
-      Product(name: 'Sok jabłkowy', category: 'Napoje', unit: 'g'),
-      Product(name: 'Herbata', category: 'Napoje', unit: 'g'),
-      Product(name: 'Kawa', category: 'Napoje', unit: 'g'),
-      Product(name: 'Cola', category: 'Napoje', unit: 'szt'),
-      Product(name: 'Piwo', category: 'Napoje', unit: 'szt'),
-      Product(name: 'Wino', category: 'Napoje', unit: 'szt'),
-      Product(name: 'Sól', category: 'Przyprawy', unit: 'g'),
-      Product(name: 'Pieprz', category: 'Przyprawy', unit: 'g'),
-      Product(name: 'Papryka słodka', category: 'Przyprawy', unit: 'g'),
-      Product(name: 'Cukier', category: 'Dodatki', unit: 'g'),
-      Product(name: 'Miód', category: 'Dodatki', unit: 'g'),
-      Product(name: 'Oliwa z oliwek', category: 'Dodatki', unit: 'g'),
-      Product(name: 'Ocet balsamiczny', category: 'Dodatki', unit: 'g'),
-      Product(name: 'Musztarda', category: 'Dodatki', unit: 'g'),
-      Product(name: 'Majonez', category: 'Dodatki', unit: 'g'),
-      Product(name: 'Ketchup', category: 'Dodatki', unit: 'g'),
-      Product(name: 'Papier toaletowy', category: 'Domowe', unit: 'szt'),
-      Product(name: 'Mydło', category: 'Domowe', unit: 'szt'),
-      Product(name: 'Szampon', category: 'Domowe', unit: 'szt'),
-      Product(name: 'Pasta do zębów', category: 'Domowe', unit: 'szt'),
-      Product(name: 'Płyn do naczyń', category: 'Domowe', unit: 'szt'),
-      Product(name: 'Proszek do prania', category: 'Domowe', unit: 'szt'),
-      Product(name: 'Ręczniki papierowe', category: 'Domowe', unit: 'szt'),
-      Product(name: 'Worki na śmieci', category: 'Domowe', unit: 'szt'),
-      Product(name: 'Chusteczki higieniczne', category: 'Domowe', unit: 'szt'),
-      Product(name: 'Ściereczki kuchenne', category: 'Domowe', unit: 'szt'),
-      Product(name: 'Płyn do okien', category: 'Domowe', unit: 'szt'),
-
-    ];
-
-    for (var product in standardProducts) {
-      await db.insert('Products', product.toMap());
-    }
-  }
+  );
 }

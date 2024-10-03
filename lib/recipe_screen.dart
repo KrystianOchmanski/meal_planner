@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
-import 'add_recipe_screen.dart';
+import 'package:meal_planner/database.dart';
+import 'add_edit_recipe_screen.dart';
 
 class RecipeScreen extends StatefulWidget {
-  const RecipeScreen({super.key});
+  final AppDatabase database;
+
+  const RecipeScreen({super.key, required this.database});
 
   @override
   State<StatefulWidget> createState() => _RecipeScreenState();
@@ -17,9 +20,9 @@ class _RecipeScreenState extends State<RecipeScreen> {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => AddRecipeScreen())
+                  MaterialPageRoute(builder: (context) => AddOrEditRecipeScreen(database: widget.database, recipe: null))
                 );
-              }, 
+              },
               child: Icon(Icons.add)),
     );
   }

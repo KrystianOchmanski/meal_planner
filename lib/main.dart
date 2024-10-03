@@ -4,13 +4,15 @@ import 'package:meal_planner/home_page.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  DatabaseHelper().database;
+  final db = AppDatabase();
 
-  runApp(const MyApp());
+  runApp(MyApp(database: db));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final AppDatabase database;
+
+  const MyApp({super.key, required this.database});
 
   // This widget is the root of your application.
   @override
@@ -21,7 +23,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.lightGreen),
         useMaterial3: true,
       ),
-      home: const HomePage(title: Strings.title),
+      home: HomePage(title: Strings.title, database: database),
     );
   }
 }
