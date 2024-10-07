@@ -174,121 +174,138 @@ class _AddOrEditRecipeScreenState extends State<AddOrEditRecipeScreen> {
     int? productToAddId;
     String productUnit = '';
     TextEditingController productIdController = TextEditingController();
+    TextEditingController productNameController = TextEditingController();
     TextEditingController productQuantityController = TextEditingController();
     final GlobalKey<FormState> dialogFormKey = GlobalKey<FormState>();
+
+    FocusNode quantityFocusNode = FocusNode();
+    FocusNode productFocusNode = FocusNode();
 
     showDialog(
         context: context,
         builder: (context) => StatefulBuilder(
           builder: (context, setState) => AlertDialog(
-          content: Form(
-            key: dialogFormKey,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Visibility(
-                  visible: false,
-                  child: TextFormField(
-                    controller: productIdController,
-                    validator: (value) {
-                      if(value == null || value.isEmpty || int.tryParse(value) == null || int.tryParse(value)! < 0){
-                        return 'Nieprawidłowe ID produktu';
-                      }
-                      return null;
-                    },
-                  )
-                ),
-                Autocomplete(
-                  optionsBuilder: (TextEditingValue textEditingValue) {
-                    if(textEditingValue.text == ''){
-                      return const Iterable<Product>.empty();
-                    }
-                    return _allProducts.where((product){
-                      return product.name
-                          .toLowerCase()
-                          .contains(textEditingValue.text.toLowerCase());
-                    });
-                  },
-                  displayStringForOption: (Product product) => product.name,
-                  fieldViewBuilder:
-                      (BuildContext context, TextEditingController fieldTextEditingController, FocusNode fieldFocusNode, VoidCallback onFieldSubmitted) {
-                    return TextFormField(
-                      textCapitalization: TextCapitalization.sentences,
-                      controller: fieldTextEditingController,
-                      focusNode: fieldFocusNode,
-                      decoration: const InputDecoration(
-                        labelText: 'Wpisz nazwę produktu',
-                      ),
-                      validator: (value) {
-                        if(value == null || value.isEmpty) {
-                          return 'Nazwa produktu nie może być pusta';
-                        }
-                        if(!_allProducts
-                            .map((e) => e.name.toLowerCase())
-                            .contains(value.toLowerCase())) {
-                          return 'Produkt nie znajduje się na liście produktów';
-                        }
-                        return null;
-                      },
-                    );
-                  },
-                  onSelected: (Product product) {
-                    setState(() {
-                      productIdController.text = product.id.toString();
-                      productToAddId = product.id;
-                      productUnit = product.unit;
-                    });
-                  },
-                ),
-                const SizedBox(height: 10),
-                Row(
-                  children: [
-                    SizedBox(
-                      width: 60,
+            content: Form(
+              key: dialogFormKey,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Visibility(
+                      visible: false,
                       child: TextFormField(
-                        controller: productQuantityController,
-                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                        inputFormatters: [
-                          FilteringTextInputFormatter.allow(RegExp(r'^[0-9]*[.,]?[0-9]*$'))
-                        ],
-                        decoration: const InputDecoration(
-                          border: OutlineInputBorder(),
-                        ),
+                        controller: productIdController,
                         validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Wprowadź ilość';
-                          }
-                          if (double.tryParse(value.replaceAll(',', '.')) == null ||
-                              double.tryParse(value.replaceAll(',', '.'))! <= 0) {
-                            return 'Ilość musi być większa od 0';
+                          if(value == null || value.isEmpty || int.tryParse(value) == null || int.tryParse(value)! < 0){
+                            return 'Nieprawidłowe ID produktu';
                           }
                           return null;
                         },
                       )
-                    ),
-                    const SizedBox(width: 5),
-                    Text(productUnit),
-                  ],
-                )
-              ],
+                  ),
+                  Autocomplete<Product>(
+                    optionsBuilder: (TextEditingValue textEditingValue) {
+                      if(textEditingValue.text == ''){
+                        return const Iterable<Product>.empty();
+                      }
+                      return _allProducts.where((product){
+                        return product.name
+                            .toLowerCase()
+                            .contains(textEditingValue.text.toLowerCase());
+                      });
+                    },
+                    displayStringForOption: (Product product) => product.name,
+                    fieldViewBuilder:
+                        (BuildContext context, TextEditingController fieldTextController, FocusNode fieldFocusNode, VoidCallback onFieldSubmitted) {
+                      productNameController = fieldTextController;
+                      productFocusNode = fieldFocusNode;
+                      return TextFormField(
+                        focusNode: fieldFocusNode,  // Ustawienie FocusNode
+                        textCapitalization: TextCapitalization.sentences,
+                        controller: fieldTextController,
+                        decoration: const InputDecoration(
+                          labelText: 'Wpisz nazwę produktu',
+                        ),
+                        validator: (value) {
+                          if(value == null || value.isEmpty) {
+                            return 'Nazwa produktu nie może być pusta';
+                          }
+                          if(!_allProducts
+                              .map((e) => e.name.toLowerCase())
+                              .contains(value.toLowerCase())) {
+                            return 'Produkt nie znajduje się na liście produktów';
+                          }
+                          return null;
+                        },
+                      );
+                    },
+                    onSelected: (Product product) {
+                      setState(() {
+                        productIdController.text = product.id.toString();
+                        productToAddId = product.id;
+                        productUnit = product.unit;
+                      });
+                      FocusScope.of(context).requestFocus(quantityFocusNode); // Przeniesienie kursora do ilości
+                    },
+                  ),
+                  const SizedBox(height: 10),
+                  Row(
+                    children: [
+                      SizedBox(
+                        width: 60,
+                        child: TextFormField(
+                          focusNode: quantityFocusNode,  // FocusNode dla ilości
+                          controller: productQuantityController,
+                          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                          inputFormatters: [
+                            FilteringTextInputFormatter.allow(RegExp(r'^[0-9]*[.,]?[0-9]*$'))
+                          ],
+                          decoration: const InputDecoration(
+                            border: OutlineInputBorder(),
+                          ),
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Wprowadź ilość';
+                            }
+                            if (double.tryParse(value.replaceAll(',', '.')) == null ||
+                                double.tryParse(value.replaceAll(',', '.'))! <= 0) {
+                              return 'Ilość musi być większa od 0';
+                            }
+                            return null;
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 5),
+                      Text(productUnit),
+                    ],
+                  )
+                ],
+              ),
             ),
+            actions: [
+              TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Anuluj')
+              ),
+              TextButton(
+                  onPressed: () {
+                    if(dialogFormKey.currentState!.validate()){
+                      addRecipeProduct(productToAddId!, productQuantityController);
+
+                      // Resetowanie formularza i przywracanie kursora na Autocomplete
+                      productUnit = '';
+                      productIdController.clear();
+                      productNameController.clear();
+                      productQuantityController.clear();
+
+                      FocusScope.of(context).requestFocus(productFocusNode);  // Przeniesienie kursora na Autocomplete
+                    }
+                  },
+                  child: const Text('Dodaj'))
+            ],
           ),
-          actions: [
-            TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('Anuluj')
-            ),
-            TextButton(
-                onPressed: () {
-                  if(dialogFormKey.currentState!.validate()){
-                    addRecipeProduct(productToAddId!, productQuantityController);
-                  }
-                },
-                child: const Text('Dodaj'))
-          ],
-        ))
-    );
+        ));
   }
+
 
   void loadProductsFromDb() async {
     var products = await db.getAllProducts();
