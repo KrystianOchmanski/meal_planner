@@ -126,23 +126,28 @@ class _AddOrEditRecipeScreenState extends State<AddOrEditRecipeScreen> {
                     physics: const NeverScrollableScrollPhysics(),
                     itemCount: _recipeProductsCompanion.length,
                     itemBuilder: (context, index) {
-                      return Padding(
-                        padding: const EdgeInsets.only(top: 10, bottom: 10),
-                        child: Row(
-                          children: [
-                            SizedBox(
-                              width: 110,
-                              child: Text(
-                                  _allProducts
-                                      .firstWhere((Product product){return product.id == _recipeProductsCompanion[index].productId.value;})
-                                      .name,
-                                style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
-                              ),
+                      return Row(
+                        children: [
+                          SizedBox(
+                            width: 110,
+                            child: Text(
+                                _allProducts
+                                    .firstWhere((Product product){
+                                      return product.id == _recipeProductsCompanion[index].productId.value;})
+                                    .name,
+                              style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
                             ),
-                            Text(
-                                  '${formatter.format(_recipeProductsCompanion[index].quantity.value)} ${_allProducts.firstWhere((product) => product.id == _recipeProductsCompanion[index].productId.value).unit}')
-                            ],
-                        ),
+                          ),
+                          Text(
+                                '${formatter.format(_recipeProductsCompanion[index].quantity.value)} '
+                                    '${_allProducts.firstWhere((product) => product.id == _recipeProductsCompanion[index].productId.value).unit}'
+                          ),
+                          Spacer(),
+                          IconButton(
+                            onPressed: () => deleteRecipeProduct(index),
+                            icon: Icon(Icons.close),
+                          ),
+                        ],
                       );
                     }
                 ),
@@ -360,6 +365,8 @@ class _AddOrEditRecipeScreenState extends State<AddOrEditRecipeScreen> {
 
         // dodanie powiązanych składników
         await saveRecipeProducts(addedRecipeId);
+
+        Navigator.pop(context);
       }
       // edycja istniejącego przepisu
       else {
@@ -374,10 +381,25 @@ class _AddOrEditRecipeScreenState extends State<AddOrEditRecipeScreen> {
         // usunięcie starych składników i zapisanie nowych
         await db.deleteRecipeProductsByRecipeId(widget.recipe!.id);
         await saveRecipeProducts(widget.recipe!.id);
+
+        Navigator.pop(context);
       }
+    } else {
+      showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: Text('Dodaj składniki!'),
+              actions: [
+                TextButton(
+                    onPressed: (){
+                      Navigator.pop(context);
+                    },
+                    child: Text('OK'))
+              ],
+            );
+          });
     }
-    
-    Navigator.pop(context);
   }
 
   Future<void> saveRecipeProducts(int addedRecipeId) async {
@@ -388,5 +410,11 @@ class _AddOrEditRecipeScreenState extends State<AddOrEditRecipeScreen> {
         quantity: product.quantity
       ));
     }
+  }
+
+  deleteRecipeProduct(int index) {
+    setState(() {
+      _recipeProductsCompanion.removeAt(index);
+    });
   }
 }
