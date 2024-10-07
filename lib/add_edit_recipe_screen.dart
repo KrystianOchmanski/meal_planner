@@ -6,16 +6,16 @@ import 'package:intl/intl.dart';
 import 'package:drift/drift.dart' hide Column;
 
 class AddOrEditRecipeScreen extends StatefulWidget {
-  final AppDatabase database;
   final Recipe? recipe;
 
-  const AddOrEditRecipeScreen({super.key, this.recipe, required this.database});
+  const AddOrEditRecipeScreen({super.key, this.recipe});
 
   @override
   State<AddOrEditRecipeScreen> createState() => _AddOrEditRecipeScreenState();
 }
 
 class _AddOrEditRecipeScreenState extends State<AddOrEditRecipeScreen> {
+  final db = AppDatabase.instance;
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _instructionController = TextEditingController();
@@ -286,7 +286,7 @@ class _AddOrEditRecipeScreenState extends State<AddOrEditRecipeScreen> {
   }
 
   void loadProductsFromDb() async {
-    var products = await widget.database.getAllProducts();
+    var products = await db.getAllProducts();
     setState(() {
       _allProducts = products;
     });
@@ -331,7 +331,7 @@ class _AddOrEditRecipeScreenState extends State<AddOrEditRecipeScreen> {
   }
 
   void _loadRecipeProducts() async {
-    final products = await widget.database.getProductsForRecipe(widget.recipe!.id);
+    final products = await db.getProductsForRecipe(widget.recipe!.id);
     setState(() {
       _recipeProductsCompanion = products.map((product) {
         return RecipeProductsCompanion(
@@ -352,7 +352,7 @@ class _AddOrEditRecipeScreenState extends State<AddOrEditRecipeScreen> {
     if(_recipeProductsCompanion.isNotEmpty){
       //dodanie nowego przepisu
       if(widget.recipe == null) {
-        final addedRecipeId = await widget.database.insertRecipe(RecipesCompanion(
+        final addedRecipeId = await db.insertRecipe(RecipesCompanion(
             title: Value(_titleController.text),
             servings: Value(_servings),
             instruction: Value(_instructionController.text)
@@ -363,7 +363,7 @@ class _AddOrEditRecipeScreenState extends State<AddOrEditRecipeScreen> {
       }
       // edycja istniejącego przepisu
       else {
-        await widget.database.updateRecipe(
+        await db.updateRecipe(
           widget.recipe!.copyWith(
             title: _titleController.text,
             servings: _servings,
@@ -372,7 +372,7 @@ class _AddOrEditRecipeScreenState extends State<AddOrEditRecipeScreen> {
         );
 
         // usunięcie starych składników i zapisanie nowych
-        await widget.database.deleteRecipeProductsByRecipeId(widget.recipe!.id);
+        await db.deleteRecipeProductsByRecipeId(widget.recipe!.id);
         await saveRecipeProducts(widget.recipe!.id);
       }
     }
@@ -382,7 +382,7 @@ class _AddOrEditRecipeScreenState extends State<AddOrEditRecipeScreen> {
 
   Future<void> saveRecipeProducts(int addedRecipeId) async {
     for(var product in _recipeProductsCompanion){
-      await widget.database.insertRecipeProduct(RecipeProductsCompanion(
+      await db.insertRecipeProduct(RecipeProductsCompanion(
         recipeId: Value(addedRecipeId),
         productId: product.productId,
         quantity: product.quantity

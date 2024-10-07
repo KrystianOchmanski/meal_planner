@@ -3,15 +3,15 @@ import 'package:meal_planner/database.dart';
 import 'add_edit_recipe_screen.dart';
 
 class RecipeScreen extends StatefulWidget {
-  final AppDatabase database;
 
-  const RecipeScreen({super.key, required this.database});
+  const RecipeScreen({super.key});
 
   @override
   State<StatefulWidget> createState() => _RecipeScreenState();
 }
 
 class _RecipeScreenState extends State<RecipeScreen> {
+  final db = AppDatabase.instance;
   List<Recipe> _recipesList = [];
 
   @override
@@ -44,7 +44,6 @@ class _RecipeScreenState extends State<RecipeScreen> {
                         context,
                         MaterialPageRoute(
                           builder: (context) => AddOrEditRecipeScreen(
-                            database: widget.database,
                             recipe: recipe,
                           ),
                         ),
@@ -65,7 +64,6 @@ class _RecipeScreenState extends State<RecipeScreen> {
             context,
             MaterialPageRoute(
               builder: (context) => AddOrEditRecipeScreen(
-                database: widget.database,
                 recipe: null,
               ),
             ),
@@ -80,7 +78,7 @@ class _RecipeScreenState extends State<RecipeScreen> {
   }
 
   Future<void> _loadRecipes() async {
-    _recipesList = await widget.database.getAllRecipes();
+    _recipesList = await db.getAllRecipes();
     setState(() {});
   }
 }

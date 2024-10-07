@@ -28,7 +28,14 @@ class RecipeProducts extends Table {
 
 @DriftDatabase(tables: [Products, Recipes, RecipeProducts])
 class AppDatabase extends _$AppDatabase {
-  AppDatabase() : super(_openConnection());
+  // 1. Tworzenie prywatnego konstruktora
+  AppDatabase._privateConstructor() : super(_openConnection());
+
+  // 2. Singleton
+  static final AppDatabase _instance = AppDatabase._privateConstructor();
+
+  // 3. Getter, który zwraca instancję
+  static AppDatabase get instance => _instance;
 
   @override
   int get schemaVersion => 1;

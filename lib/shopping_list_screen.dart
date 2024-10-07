@@ -2,9 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:meal_planner/database.dart';
 
 class ShoppingListScreen extends StatefulWidget {
-  final AppDatabase database;
-
-  const ShoppingListScreen({super.key, required this.database});
+  const ShoppingListScreen({super.key});
 
   @override
   State<StatefulWidget> createState() => _ShoppingListScreenState();
@@ -14,15 +12,15 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: ProductListScreen(database: widget.database),
+      home: ProductListScreen(),
     );
   }
 }
 
 class ProductListScreen extends StatelessWidget {
-  final AppDatabase database;
+  final db = AppDatabase.instance;
 
-  const ProductListScreen({super.key, required this.database});
+  ProductListScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -31,7 +29,7 @@ class ProductListScreen extends StatelessWidget {
         title: Text('Lista Produktów'),
       ),
       body: FutureBuilder<List<Product>>(
-        future: database.select(database.products).get(),
+        future: db.select(db.products).get(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return CircularProgressIndicator();
