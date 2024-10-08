@@ -53,7 +53,12 @@ class _AddOrEditRecipeScreenState extends State<AddOrEditRecipeScreen> {
             style: GoogleFonts.poppins()),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         actions: [
-          IconButton(onPressed: saveRecipe, icon: const Icon(Icons.check))
+          if(widget.recipe != null)
+            IconButton(
+                onPressed: () => deleteRecipe(widget.recipe!),
+                icon: Icon(Icons.delete)
+            ),
+          IconButton(onPressed: saveRecipe, icon: const Icon(Icons.check)),
         ],
       ),
       body: SingleChildScrollView(
@@ -204,14 +209,24 @@ class _AddOrEditRecipeScreenState extends State<AddOrEditRecipeScreen> {
                   ),
                   Autocomplete<Product>(
                     optionsBuilder: (TextEditingValue textEditingValue) {
-                      if(textEditingValue.text == ''){
+                      if (textEditingValue.text == '') {
                         return const Iterable<Product>.empty();
                       }
-                      return _allProducts.where((product){
-                        return product.name
-                            .toLowerCase()
-                            .contains(textEditingValue.text.toLowerCase());
-                      });
+                      final input = textEditingValue.text.toLowerCase();
+                      return _allProducts
+                          .where((product) => product.name.toLowerCase().contains(input))
+                          .toList()
+                        ..sort((a, b) {
+                          final nameA = a.name.toLowerCase();
+                          final nameB = b.name.toLowerCase();
+                          // Produkty zaczynające się od wprowadzonego tekstu mają priorytet
+                          final startsWithA = nameA.startsWith(input) ? 0 : 1;
+                          final startsWithB = nameB.startsWith(input) ? 0 : 1;
+                          // Najpierw sortuj według tego, czy zaczynają się od wprowadzonego tekstu
+                          final result = startsWithA.compareTo(startsWithB);
+                          // Jeśli oba mają ten sam wynik, sortuj alfabetycznie
+                          return result == 0 ? nameA.compareTo(nameB) : result;
+                        });
                     },
                     displayStringForOption: (Product product) => product.name,
                     fieldViewBuilder:
@@ -433,5 +448,30 @@ class _AddOrEditRecipeScreenState extends State<AddOrEditRecipeScreen> {
     setState(() {
       _recipeProductsCompanion.removeAt(index);
     });
+  }
+
+  deleteRecipe(Recipe recipe) {
+    showDialog(
+        context: context, 
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('Czy na pewno chcesz usunąć przepis?'),
+            actions: [
+              TextButton(
+                  onPressed: (){
+                    Navigator.pop(context);
+                  }, 
+                  child: Text('Anuluj')
+              ),
+              TextButton(
+                  onPressed: () async {
+                    await db.deleteRecipe(recipe.id);
+                    Navigator.pop(context);
+                    Navigator.pop(context);
+                  }, 
+                  child: Text('Usuń'))
+            ],
+          );
+        });
   }
 }
