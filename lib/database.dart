@@ -95,6 +95,14 @@ class AppDatabase extends _$AppDatabase {
     return (delete(recipes)..where((tbl) => tbl.id.equals(id))).go();
   }
 
+  Future<void> deleteSelectedRecipes(List<int> selectedRecipeIds) async {
+    if (selectedRecipeIds.isNotEmpty) {
+      await (delete(recipes)
+        ..where((tbl) => tbl.id.isIn(selectedRecipeIds))
+      ).go();
+    }
+  }
+
   //  RecipeProducts
   //    CREATE
   Future<int> insertRecipeProduct(RecipeProductsCompanion recipeProduct) {
