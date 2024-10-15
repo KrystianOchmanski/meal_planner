@@ -26,7 +26,24 @@ class RecipeProducts extends Table {
   RealColumn get quantity => real()();
 }
 
-@DriftDatabase(tables: [Products, Recipes, RecipeProducts])
+class Meals extends Table {
+  IntColumn get id => integer().autoIncrement()(); // Primary Key
+  DateTimeColumn get date => dateTime()();
+  IntColumn get mealType => intEnum<MealType>()();
+  IntColumn get recipeId =>
+      integer().references(Recipes, #id)(); // Foreign Key
+  IntColumn get servings => integer()();
+}
+
+enum MealType{
+  breakfast,
+  brunch,
+  lunch,
+  snack,
+  dinner
+}
+
+@DriftDatabase(tables: [Products, Recipes, RecipeProducts, Meals])
 class AppDatabase extends _$AppDatabase {
   // 1. Tworzenie prywatnego konstruktora
   AppDatabase._privateConstructor() : super(_openConnection());
@@ -41,7 +58,7 @@ class AppDatabase extends _$AppDatabase {
   int get schemaVersion => 1;
 
   static QueryExecutor _openConnection() {
-    return driftDatabase(name: 'my_database');
+    return driftDatabase(name: 'meal_planner_database');
   }
 
   // CRUD

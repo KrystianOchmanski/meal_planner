@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:meal_planner/database.dart';
 import 'add_edit_recipe_screen.dart';
 
@@ -76,7 +77,10 @@ class _RecipeScreenState extends State<RecipeScreen> {
                           value: isSelected,
                           onChanged: null)
                       : null,
-                    title: Text(recipe.title),
+                    title: Text(
+                      recipe.title,
+                      style: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.w500),
+                    ),
                     selected: isSelected,
                     onTap: () async {
                       if(_isSelectionMode){
