@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:meal_planner/database.dart';
+import 'package:meal_planner/data/database.dart';
 import 'add_edit_recipe_screen.dart';
 
 class RecipeScreen extends StatefulWidget {

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:meal_planner/database.dart';
+import 'package:meal_planner/data/database.dart';
 import 'package:intl/intl.dart';
 import 'package:drift/drift.dart' hide Column;
 

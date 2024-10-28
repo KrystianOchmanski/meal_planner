@@ -878,6 +878,10 @@ class $MealsTable extends Meals with TableInfo<$MealsTable, Meal> {
   @override
   Set<GeneratedColumn> get $primaryKey => {id};
   @override
+  List<Set<GeneratedColumn>> get uniqueKeys => [
+        {date, mealType},
+      ];
+  @override
   Meal map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return Meal(

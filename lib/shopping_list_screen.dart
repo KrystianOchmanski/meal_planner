@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:meal_planner/database.dart';
+import 'package:meal_planner/data/database.dart';
 
 class ShoppingListScreen extends StatefulWidget {
   const ShoppingListScreen({super.key});
@@ -29,7 +29,7 @@ class ProductListScreen extends StatelessWidget {
         title: Text('Lista Produktów'),
       ),
       body: FutureBuilder<List<Product>>(
-        future: db.select(db.products).get(),
+        future: db.getAllProducts(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return CircularProgressIndicator();

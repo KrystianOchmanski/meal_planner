@@ -4,7 +4,9 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart';
 
 class WeeklyDatePicker extends StatefulWidget {
-  const WeeklyDatePicker({super.key});
+  final ValueChanged<DateTime> onDateSelected;
+
+  const WeeklyDatePicker({super.key, required this.onDateSelected});
 
   @override
   State<WeeklyDatePicker> createState() => _WeeklyDatePickerState();
@@ -67,6 +69,7 @@ class _WeeklyDatePickerState extends State<WeeklyDatePicker> {
                       setState(() {
                         _selectedDay = date;
                       });
+                      widget.onDateSelected(_selectedDay);
                     },
                     child: Container(
                       color: Colors.transparent,

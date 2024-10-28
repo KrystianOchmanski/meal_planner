@@ -1,47 +1,10 @@
 import 'package:drift/drift.dart';
 import 'package:drift_flutter/drift_flutter.dart';
+import 'package:meal_planner/data/tables.dart';
+
+import '../models/meal_with_recipe.dart';
 
 part 'database.g.dart';
-
-class Products extends Table {
-  IntColumn get id => integer().autoIncrement()(); // Primary Key
-  TextColumn get name => text().withLength(min: 1, max: 255)();
-  TextColumn get category => text().withLength(min: 1, max: 255)();
-  TextColumn get unit => text().withLength(min: 1, max: 50)();
-}
-
-class Recipes extends Table {
-  IntColumn get id => integer().autoIncrement()(); // Primary Key
-  TextColumn get title => text().withLength(min: 1, max: 255)();
-  IntColumn get servings => integer()();
-  TextColumn get instruction => text().nullable()();
-}
-
-class RecipeProducts extends Table {
-  IntColumn get id => integer().autoIncrement()(); // Primary Key
-  IntColumn get recipeId => 
-      integer().references(Recipes, #id)(); // Foreign Key
-  IntColumn get productId =>
-      integer().references(Products, #id)(); // Foreign Key
-  RealColumn get quantity => real()();
-}
-
-class Meals extends Table {
-  IntColumn get id => integer().autoIncrement()(); // Primary Key
-  DateTimeColumn get date => dateTime()();
-  IntColumn get mealType => intEnum<MealType>()();
-  IntColumn get recipeId =>
-      integer().references(Recipes, #id)(); // Foreign Key
-  IntColumn get servings => integer()();
-}
-
-enum MealType{
-  breakfast,
-  brunch,
-  lunch,
-  snack,
-  dinner
-}
 
 @DriftDatabase(tables: [Products, Recipes, RecipeProducts, Meals])
 class AppDatabase extends _$AppDatabase {
@@ -62,13 +25,13 @@ class AppDatabase extends _$AppDatabase {
   }
 
   // CRUD
-  //  Products
-  //    CREATE
+  //  PRODUCTS
+  //    Create
   Future<int> insertProduct(ProductsCompanion product) {
     return into(products).insert(product);
   }
 
-//      READ
+//      Read
   Future<List<Product>> getAllProducts() {
     return select(products).get();
   }
@@ -77,23 +40,23 @@ class AppDatabase extends _$AppDatabase {
     return (select(products)..where((tbl) => tbl.id.equals(id))).getSingleOrNull();
   }
 
-//      UPDATE
+//      Update
   Future<bool> updateProduct(Product product) {
     return update(products).replace(product);
   }
 
-//      DELETE
+//      Delete
   Future<int> deleteProduct(int id) {
     return (delete(products)..where((tbl) => tbl.id.equals(id))).go();
   }
 
-  //  Recipes
-  //    CREATE
+  //  RECIPES
+  //    Create
   Future<int> insertRecipe(RecipesCompanion recipe) {
     return into(recipes).insert(recipe);
   }
 
-//      READ
+//      Read
   Future<List<Recipe>> getAllRecipes() {
     return select(recipes).get();
   }
@@ -102,12 +65,12 @@ class AppDatabase extends _$AppDatabase {
     return (select(recipes)..where((tbl) => tbl.id.equals(id))).getSingleOrNull();
   }
 
-//      UPDATE
+//      Update
   Future<bool> updateRecipe(Recipe recipe) {
     return update(recipes).replace(recipe);
   }
 
-//      DELETE
+//      Delete
   Future<int> deleteRecipe(int id) {
     return (delete(recipes)..where((tbl) => tbl.id.equals(id))).go();
   }
@@ -120,13 +83,13 @@ class AppDatabase extends _$AppDatabase {
     }
   }
 
-  //  RecipeProducts
-  //    CREATE
+  //  RECIPE_PRODUCTS
+  //    Create
   Future<int> insertRecipeProduct(RecipeProductsCompanion recipeProduct) {
     return into(recipeProducts).insert(recipeProduct);
   }
 
-//      READ
+//      Read
   Future<List<RecipeProduct>> getAllRecipeProducts() {
     return select(recipeProducts).get();
   }
@@ -139,18 +102,63 @@ class AppDatabase extends _$AppDatabase {
     return (select(recipeProducts)..where((tbl) => tbl.id.equals(id))).getSingleOrNull();
   }
 
-//      UPDATE
+//      Update
   Future<bool> updateRecipeProduct(RecipeProduct recipeProduct) {
     return update(recipeProducts).replace(recipeProduct);
   }
 
-//      DELETE
+//      Delete
   Future<int> deleteRecipeProduct(int id) {
     return (delete(recipeProducts)..where((tbl) => tbl.id.equals(id))).go();
   }
 
   Future<int> deleteRecipeProductsByRecipeId(int recipeId){
     return (delete(recipeProducts)..where((tbl) => tbl.recipeId.equals(recipeId))).go();
+  }
+
+  //  MEALS
+  //    Create
+  Future<int> insertMeal(MealsCompanion meal) async {
+    return await into(meals).insert(meal);
+  }
+
+  //    Read
+  Future<List<Meal>> getAllMeals() async {
+    return await select(meals).get();
+  }
+
+  Future<List<Meal>> getMealsByDate(DateTime date) async {
+    return await (select(meals)..where((tbl) => tbl.date.equals(date))).get();
+  }
+
+  Future<List<MealWithRecipe>> getMealsWithRecipeTitleForDate(DateTime selectedDate) {
+    final query = select(meals).join([
+      innerJoin(recipes, recipes.id.equalsExp(meals.recipeId))
+    ])
+      ..where(meals.date.equals(selectedDate));
+
+    return query.map((row) {
+      final meal = row.readTable(meals);
+      final recipe = row.readTable(recipes);
+
+      return MealWithRecipe(
+        id: meal.id,
+        date: meal.date,
+        mealType: meal.mealType,
+        servings: meal.servings,
+        recipeTitle: recipe.title,
+      );
+    }).get();
+  }
+
+  //    Update
+  Future<bool> updateMeal(Meal meal) async {
+    return await update(meals).replace(meal);
+  }
+
+  // Delete
+  Future<int> deleteMeal(int id) async {
+    return await (delete(meals)..where((tbl) => tbl.id.equals(id))).go();
   }
 
   @override
