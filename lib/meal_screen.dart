@@ -17,6 +17,7 @@ class MealScreen extends StatefulWidget {
 class _MealScreenState extends State<MealScreen> {
   DateTime _selectedDay = DateTime.now();
   Map<MealType, MealWithRecipe> _mealsWithRecipe = {};
+  bool _isLoading = true;
 
   @override
   void initState() {
@@ -31,15 +32,21 @@ class _MealScreenState extends State<MealScreen> {
         children: [
           WeeklyDatePicker(onDateSelected: _onDateSelected),
           const Padding(padding: EdgeInsets.only(top: 20)),
-          MealRow(title: 'Śniadanie', mealWithRecipe: _mealsWithRecipe[MealType.breakfast], mealCallback: _loadMealsForSelectedDay, selectedDay: _selectedDay, mealType: MealType.breakfast),
-          const Padding(padding: EdgeInsets.only(top: 10)),
-          MealRow(title: 'II Śniadanie', mealWithRecipe: _mealsWithRecipe[MealType.brunch], mealCallback: _loadMealsForSelectedDay, selectedDay: _selectedDay, mealType: MealType.brunch),
-          const Padding(padding: EdgeInsets.only(top: 10)),
-          MealRow(title: 'Obiad', mealWithRecipe: _mealsWithRecipe[MealType.lunch], mealCallback: _loadMealsForSelectedDay, selectedDay: _selectedDay, mealType: MealType.lunch),
-          const Padding(padding: EdgeInsets.only(top: 10)),
-          MealRow(title: 'Przekąska', mealWithRecipe: _mealsWithRecipe[MealType.snack], mealCallback: _loadMealsForSelectedDay, selectedDay: _selectedDay, mealType: MealType.snack),
-          const Padding(padding: EdgeInsets.only(top: 10)),
-          MealRow(title: 'Kolacja', mealWithRecipe: _mealsWithRecipe[MealType.dinner], mealCallback: _loadMealsForSelectedDay, selectedDay: _selectedDay, mealType: MealType.dinner)
+          _isLoading
+              ? CircularProgressIndicator()
+              : Column(
+            children: [
+              MealRow(title: 'Śniadanie', mealWithRecipe: _mealsWithRecipe[MealType.breakfast], mealCallback: _loadMealsForSelectedDay, selectedDay: _selectedDay, mealType: MealType.breakfast),
+              const Padding(padding: EdgeInsets.only(top: 10)),
+              MealRow(title: 'II Śniadanie', mealWithRecipe: _mealsWithRecipe[MealType.brunch], mealCallback: _loadMealsForSelectedDay, selectedDay: _selectedDay, mealType: MealType.brunch),
+              const Padding(padding: EdgeInsets.only(top: 10)),
+              MealRow(title: 'Obiad', mealWithRecipe: _mealsWithRecipe[MealType.lunch], mealCallback: _loadMealsForSelectedDay, selectedDay: _selectedDay, mealType: MealType.lunch),
+              const Padding(padding: EdgeInsets.only(top: 10)),
+              MealRow(title: 'Przekąska', mealWithRecipe: _mealsWithRecipe[MealType.snack], mealCallback: _loadMealsForSelectedDay, selectedDay: _selectedDay, mealType: MealType.snack),
+              const Padding(padding: EdgeInsets.only(top: 10)),
+              MealRow(title: 'Kolacja', mealWithRecipe: _mealsWithRecipe[MealType.dinner], mealCallback: _loadMealsForSelectedDay, selectedDay: _selectedDay, mealType: MealType.dinner),
+            ],
+          ),
         ],
       ),
     );
@@ -48,23 +55,18 @@ class _MealScreenState extends State<MealScreen> {
   void _onDateSelected(DateTime date) {
     setState(() {
       _selectedDay = date;
+      _isLoading = true;
     });
     _loadMealsForSelectedDay();
   }
 
   void _loadMealsForSelectedDay() async {
     final meals = await widget.db.getMealsWithRecipeTitleForDate(_selectedDay);
-    for(var meal in meals){
-      print(meal.id);
-      print(meal.mealType);
-      print(meal.recipeTitle);
-      print(meal.servings);
-      print(meal.date);
-    }
     setState(() {
       _mealsWithRecipe = {
         for (var meal in meals) meal.mealType: meal
       };
+      _isLoading = false;
     });
   }
 }

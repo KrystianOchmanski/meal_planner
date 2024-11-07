@@ -24,10 +24,10 @@ class _MealRowState extends State<MealRow> {
   List<Recipe>? _allRecipes;
   List<Recipe>? _filteredRecipes;
   final TextEditingController _filterController = TextEditingController();
+  bool _isLoading = true;
 
   @override
   void initState() {
-    _loadAllRecipes();
     super.initState();
   }
 
@@ -85,17 +85,21 @@ class _MealRowState extends State<MealRow> {
   }
 
   void _loadAllRecipes() async {
+    setState(() {
+      _isLoading = true;
+    });
     var recipes = await AppDatabase.instance.getAllRecipes();
     setState(() {
       _allRecipes = recipes;
       _filteredRecipes = recipes;
+      _isLoading = false;
     });
   }
 
 
 
   void _showSelectRecipeDialog() {
-    _loadAllRecipes(); // todo zrobic to lepiej
+    _loadAllRecipes();
     Recipe? selectedRecipe;
     int servings = 1;
 
@@ -150,7 +154,7 @@ class _MealRowState extends State<MealRow> {
                       onChanged: filterRecipes,
                     ),
                     SizedBox(height: 10),
-                    _filteredRecipes != null
+                    !_isLoading
                         ? SizedBox(
                           height: 200,
                           child: SingleChildScrollView(

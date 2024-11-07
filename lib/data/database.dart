@@ -132,10 +132,14 @@ class AppDatabase extends _$AppDatabase {
   }
 
   Future<List<MealWithRecipe>> getMealsWithRecipeTitleForDate(DateTime selectedDate) {
+    // Ustawienie zakresu na dany dzień
+    final startOfDay = DateTime(selectedDate.year, selectedDate.month, selectedDate.day);
+    final endOfDay = DateTime(selectedDate.year, selectedDate.month, selectedDate.day, 23, 59, 59);
+
     final query = select(meals).join([
       innerJoin(recipes, recipes.id.equalsExp(meals.recipeId))
     ])
-      ..where(meals.date.equals(selectedDate));
+      ..where(meals.date.isBetweenValues(startOfDay, endOfDay));
 
     return query.map((row) {
       final meal = row.readTable(meals);
