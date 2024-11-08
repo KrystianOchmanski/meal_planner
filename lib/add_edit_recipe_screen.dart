@@ -315,9 +315,9 @@ class _AddOrEditRecipeScreenState extends State<AddOrEditRecipeScreen> {
               actions: [
                 TextButton(
                     onPressed: () => Navigator.pop(context),
-                    child: const Text('Anuluj')
+                    child: Text('Anuluj', style: GoogleFonts.poppins(color: Colors.red)),
                 ),
-                TextButton(
+                ElevatedButton(
                     onPressed: () {
                       if (dialogFormKey.currentState!.validate()) {
                         addRecipeProduct(
@@ -333,7 +333,8 @@ class _AddOrEditRecipeScreenState extends State<AddOrEditRecipeScreen> {
                             productFocusNode); // Przeniesienie kursora na Autocomplete
                       }
                     },
-                    child: const Text('Dodaj'))
+                    child: Text('Dodaj', style: GoogleFonts.poppins())
+                )
               ],
             );
           }

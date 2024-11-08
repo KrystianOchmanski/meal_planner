@@ -71,9 +71,14 @@ class AppDatabase extends _$AppDatabase {
   }
 
 //      Delete
-  Future<int> deleteRecipe(int id) {
+  Future<int> deleteRecipe(int id) async {
+    // Usuń posiłki powiązane z danym recipe
+    await (delete(meals)..where((tbl) => tbl.recipeId.equals(id))).go();
+
+    // Usuń sam recipe
     return (delete(recipes)..where((tbl) => tbl.id.equals(id))).go();
   }
+
 
   Future<void> deleteSelectedRecipes(List<int> selectedRecipeIds) async {
     if (selectedRecipeIds.isNotEmpty) {
