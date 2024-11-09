@@ -73,7 +73,8 @@ class AppDatabase extends _$AppDatabase {
 //      Delete
   Future<int> deleteRecipe(int id) async {
     // Usuń posiłki powiązane z danym recipe
-    await (delete(meals)..where((tbl) => tbl.recipeId.equals(id))).go();
+    var deletedRows = await (delete(meals)..where((tbl) => tbl.recipeId.equals(id))).go();
+    print(deletedRows);
 
     // Usuń sam recipe
     return (delete(recipes)..where((tbl) => tbl.id.equals(id))).go();
@@ -82,6 +83,9 @@ class AppDatabase extends _$AppDatabase {
 
   Future<void> deleteSelectedRecipes(List<int> selectedRecipeIds) async {
     if (selectedRecipeIds.isNotEmpty) {
+      await (delete(meals)
+        ..where((tbl) => tbl.recipeId.isIn(selectedRecipeIds))
+      ).go();
       await (delete(recipes)
         ..where((tbl) => tbl.id.isIn(selectedRecipeIds))
       ).go();
