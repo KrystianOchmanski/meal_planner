@@ -38,6 +38,7 @@ dependencies:
   sqflite: ^2.3.3+1
   drift: ^2.20.3
   drift_flutter: ^0.2.0
+  syncfusion_flutter_datepicker: ^27.1.58
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
