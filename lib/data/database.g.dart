@@ -1106,6 +1106,189 @@ class MealsCompanion extends UpdateCompanion<Meal> {
   }
 }
 
+class $ShoppingListItemsTable extends ShoppingListItems
+    with TableInfo<$ShoppingListItemsTable, ShoppingListItem> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $ShoppingListItemsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _productIdMeta =
+      const VerificationMeta('productId');
+  @override
+  late final GeneratedColumn<int> productId = GeneratedColumn<int>(
+      'product_id', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      $customConstraints: 'REFERENCES products(id) NOT NULL');
+  static const VerificationMeta _quantityMeta =
+      const VerificationMeta('quantity');
+  @override
+  late final GeneratedColumn<double> quantity = GeneratedColumn<double>(
+      'quantity', aliasedName, false,
+      type: DriftSqlType.double, requiredDuringInsert: true);
+  @override
+  List<GeneratedColumn> get $columns => [productId, quantity];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'shopping_list_items';
+  @override
+  VerificationContext validateIntegrity(Insertable<ShoppingListItem> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('product_id')) {
+      context.handle(_productIdMeta,
+          productId.isAcceptableOrUnknown(data['product_id']!, _productIdMeta));
+    }
+    if (data.containsKey('quantity')) {
+      context.handle(_quantityMeta,
+          quantity.isAcceptableOrUnknown(data['quantity']!, _quantityMeta));
+    } else if (isInserting) {
+      context.missing(_quantityMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {productId};
+  @override
+  ShoppingListItem map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return ShoppingListItem(
+      productId: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}product_id'])!,
+      quantity: attachedDatabase.typeMapping
+          .read(DriftSqlType.double, data['${effectivePrefix}quantity'])!,
+    );
+  }
+
+  @override
+  $ShoppingListItemsTable createAlias(String alias) {
+    return $ShoppingListItemsTable(attachedDatabase, alias);
+  }
+}
+
+class ShoppingListItem extends DataClass
+    implements Insertable<ShoppingListItem> {
+  final int productId;
+  final double quantity;
+  const ShoppingListItem({required this.productId, required this.quantity});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['product_id'] = Variable<int>(productId);
+    map['quantity'] = Variable<double>(quantity);
+    return map;
+  }
+
+  ShoppingListItemsCompanion toCompanion(bool nullToAbsent) {
+    return ShoppingListItemsCompanion(
+      productId: Value(productId),
+      quantity: Value(quantity),
+    );
+  }
+
+  factory ShoppingListItem.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return ShoppingListItem(
+      productId: serializer.fromJson<int>(json['productId']),
+      quantity: serializer.fromJson<double>(json['quantity']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'productId': serializer.toJson<int>(productId),
+      'quantity': serializer.toJson<double>(quantity),
+    };
+  }
+
+  ShoppingListItem copyWith({int? productId, double? quantity}) =>
+      ShoppingListItem(
+        productId: productId ?? this.productId,
+        quantity: quantity ?? this.quantity,
+      );
+  ShoppingListItem copyWithCompanion(ShoppingListItemsCompanion data) {
+    return ShoppingListItem(
+      productId: data.productId.present ? data.productId.value : this.productId,
+      quantity: data.quantity.present ? data.quantity.value : this.quantity,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ShoppingListItem(')
+          ..write('productId: $productId, ')
+          ..write('quantity: $quantity')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(productId, quantity);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is ShoppingListItem &&
+          other.productId == this.productId &&
+          other.quantity == this.quantity);
+}
+
+class ShoppingListItemsCompanion extends UpdateCompanion<ShoppingListItem> {
+  final Value<int> productId;
+  final Value<double> quantity;
+  const ShoppingListItemsCompanion({
+    this.productId = const Value.absent(),
+    this.quantity = const Value.absent(),
+  });
+  ShoppingListItemsCompanion.insert({
+    this.productId = const Value.absent(),
+    required double quantity,
+  }) : quantity = Value(quantity);
+  static Insertable<ShoppingListItem> custom({
+    Expression<int>? productId,
+    Expression<double>? quantity,
+  }) {
+    return RawValuesInsertable({
+      if (productId != null) 'product_id': productId,
+      if (quantity != null) 'quantity': quantity,
+    });
+  }
+
+  ShoppingListItemsCompanion copyWith(
+      {Value<int>? productId, Value<double>? quantity}) {
+    return ShoppingListItemsCompanion(
+      productId: productId ?? this.productId,
+      quantity: quantity ?? this.quantity,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (productId.present) {
+      map['product_id'] = Variable<int>(productId.value);
+    }
+    if (quantity.present) {
+      map['quantity'] = Variable<double>(quantity.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ShoppingListItemsCompanion(')
+          ..write('productId: $productId, ')
+          ..write('quantity: $quantity')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -1113,12 +1296,14 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $RecipesTable recipes = $RecipesTable(this);
   late final $RecipeProductsTable recipeProducts = $RecipeProductsTable(this);
   late final $MealsTable meals = $MealsTable(this);
+  late final $ShoppingListItemsTable shoppingListItems =
+      $ShoppingListItemsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
   @override
   List<DatabaseSchemaEntity> get allSchemaEntities =>
-      [products, recipes, recipeProducts, meals];
+      [products, recipes, recipeProducts, meals, shoppingListItems];
 }
 
 typedef $$ProductsTableCreateCompanionBuilder = ProductsCompanion Function({
@@ -1149,6 +1334,23 @@ final class $$ProductsTableReferences
         .filter((f) => f.productId.id($_item.id));
 
     final cache = $_typedResult.readTableOrNull(_recipeProductsRefsTable($_db));
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: cache));
+  }
+
+  static MultiTypedResultKey<$ShoppingListItemsTable, List<ShoppingListItem>>
+      _shoppingListItemsRefsTable(_$AppDatabase db) =>
+          MultiTypedResultKey.fromTable(db.shoppingListItems,
+              aliasName: $_aliasNameGenerator(
+                  db.products.id, db.shoppingListItems.productId));
+
+  $$ShoppingListItemsTableProcessedTableManager get shoppingListItemsRefs {
+    final manager =
+        $$ShoppingListItemsTableTableManager($_db, $_db.shoppingListItems)
+            .filter((f) => f.productId.id($_item.id));
+
+    final cache =
+        $_typedResult.readTableOrNull(_shoppingListItemsRefsTable($_db));
     return ProcessedTableManager(
         manager.$state.copyWith(prefetchedData: cache));
   }
@@ -1189,6 +1391,23 @@ class $$ProductsTableFilterComposer
                 $state.db.recipeProducts, joinBuilder, parentComposers)));
     return f(composer);
   }
+
+  ComposableFilter shoppingListItemsRefs(
+      ComposableFilter Function($$ShoppingListItemsTableFilterComposer f) f) {
+    final $$ShoppingListItemsTableFilterComposer composer =
+        $state.composerBuilder(
+            composer: this,
+            getCurrentColumn: (t) => t.id,
+            referencedTable: $state.db.shoppingListItems,
+            getReferencedColumn: (t) => t.productId,
+            builder: (joinBuilder, parentComposers) =>
+                $$ShoppingListItemsTableFilterComposer(ComposerState(
+                    $state.db,
+                    $state.db.shoppingListItems,
+                    joinBuilder,
+                    parentComposers)));
+    return f(composer);
+  }
 }
 
 class $$ProductsTableOrderingComposer
@@ -1225,7 +1444,8 @@ class $$ProductsTableTableManager extends RootTableManager<
     $$ProductsTableUpdateCompanionBuilder,
     (Product, $$ProductsTableReferences),
     Product,
-    PrefetchHooks Function({bool recipeProductsRefs})> {
+    PrefetchHooks Function(
+        {bool recipeProductsRefs, bool shoppingListItemsRefs})> {
   $$ProductsTableTableManager(_$AppDatabase db, $ProductsTable table)
       : super(TableManagerState(
           db: db,
@@ -1262,11 +1482,13 @@ class $$ProductsTableTableManager extends RootTableManager<
               .map((e) =>
                   (e.readTable(table), $$ProductsTableReferences(db, table, e)))
               .toList(),
-          prefetchHooksCallback: ({recipeProductsRefs = false}) {
+          prefetchHooksCallback: (
+              {recipeProductsRefs = false, shoppingListItemsRefs = false}) {
             return PrefetchHooks(
               db: db,
               explicitlyWatchedTables: [
-                if (recipeProductsRefs) db.recipeProducts
+                if (recipeProductsRefs) db.recipeProducts,
+                if (shoppingListItemsRefs) db.shoppingListItems
               ],
               addJoins: null,
               getPrefetchedDataCallback: (items) async {
@@ -1279,6 +1501,18 @@ class $$ProductsTableTableManager extends RootTableManager<
                         managerFromTypedResult: (p0) =>
                             $$ProductsTableReferences(db, table, p0)
                                 .recipeProductsRefs,
+                        referencedItemsForCurrentItem:
+                            (item, referencedItems) => referencedItems
+                                .where((e) => e.productId == item.id),
+                        typedResults: items),
+                  if (shoppingListItemsRefs)
+                    await $_getPrefetchedData(
+                        currentTable: table,
+                        referencedTable: $$ProductsTableReferences
+                            ._shoppingListItemsRefsTable(db),
+                        managerFromTypedResult: (p0) =>
+                            $$ProductsTableReferences(db, table, p0)
+                                .shoppingListItemsRefs,
                         referencedItemsForCurrentItem:
                             (item, referencedItems) => referencedItems
                                 .where((e) => e.productId == item.id),
@@ -1300,7 +1534,8 @@ typedef $$ProductsTableProcessedTableManager = ProcessedTableManager<
     $$ProductsTableUpdateCompanionBuilder,
     (Product, $$ProductsTableReferences),
     Product,
-    PrefetchHooks Function({bool recipeProductsRefs})>;
+    PrefetchHooks Function(
+        {bool recipeProductsRefs, bool shoppingListItemsRefs})>;
 typedef $$RecipesTableCreateCompanionBuilder = RecipesCompanion Function({
   Value<int> id,
   required String title,
@@ -1959,6 +2194,170 @@ typedef $$MealsTableProcessedTableManager = ProcessedTableManager<
     (Meal, $$MealsTableReferences),
     Meal,
     PrefetchHooks Function({bool recipeId})>;
+typedef $$ShoppingListItemsTableCreateCompanionBuilder
+    = ShoppingListItemsCompanion Function({
+  Value<int> productId,
+  required double quantity,
+});
+typedef $$ShoppingListItemsTableUpdateCompanionBuilder
+    = ShoppingListItemsCompanion Function({
+  Value<int> productId,
+  Value<double> quantity,
+});
+
+final class $$ShoppingListItemsTableReferences extends BaseReferences<
+    _$AppDatabase, $ShoppingListItemsTable, ShoppingListItem> {
+  $$ShoppingListItemsTableReferences(
+      super.$_db, super.$_table, super.$_typedResult);
+
+  static $ProductsTable _productIdTable(_$AppDatabase db) =>
+      db.products.createAlias(
+          $_aliasNameGenerator(db.shoppingListItems.productId, db.products.id));
+
+  $$ProductsTableProcessedTableManager? get productId {
+    if ($_item.productId == null) return null;
+    final manager = $$ProductsTableTableManager($_db, $_db.products)
+        .filter((f) => f.id($_item.productId!));
+    final item = $_typedResult.readTableOrNull(_productIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: [item]));
+  }
+}
+
+class $$ShoppingListItemsTableFilterComposer
+    extends FilterComposer<_$AppDatabase, $ShoppingListItemsTable> {
+  $$ShoppingListItemsTableFilterComposer(super.$state);
+  ColumnFilters<double> get quantity => $state.composableBuilder(
+      column: $state.table.quantity,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  $$ProductsTableFilterComposer get productId {
+    final $$ProductsTableFilterComposer composer = $state.composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.productId,
+        referencedTable: $state.db.products,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder, parentComposers) =>
+            $$ProductsTableFilterComposer(ComposerState(
+                $state.db, $state.db.products, joinBuilder, parentComposers)));
+    return composer;
+  }
+}
+
+class $$ShoppingListItemsTableOrderingComposer
+    extends OrderingComposer<_$AppDatabase, $ShoppingListItemsTable> {
+  $$ShoppingListItemsTableOrderingComposer(super.$state);
+  ColumnOrderings<double> get quantity => $state.composableBuilder(
+      column: $state.table.quantity,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  $$ProductsTableOrderingComposer get productId {
+    final $$ProductsTableOrderingComposer composer = $state.composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.productId,
+        referencedTable: $state.db.products,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder, parentComposers) =>
+            $$ProductsTableOrderingComposer(ComposerState(
+                $state.db, $state.db.products, joinBuilder, parentComposers)));
+    return composer;
+  }
+}
+
+class $$ShoppingListItemsTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $ShoppingListItemsTable,
+    ShoppingListItem,
+    $$ShoppingListItemsTableFilterComposer,
+    $$ShoppingListItemsTableOrderingComposer,
+    $$ShoppingListItemsTableCreateCompanionBuilder,
+    $$ShoppingListItemsTableUpdateCompanionBuilder,
+    (ShoppingListItem, $$ShoppingListItemsTableReferences),
+    ShoppingListItem,
+    PrefetchHooks Function({bool productId})> {
+  $$ShoppingListItemsTableTableManager(
+      _$AppDatabase db, $ShoppingListItemsTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          filteringComposer:
+              $$ShoppingListItemsTableFilterComposer(ComposerState(db, table)),
+          orderingComposer: $$ShoppingListItemsTableOrderingComposer(
+              ComposerState(db, table)),
+          updateCompanionCallback: ({
+            Value<int> productId = const Value.absent(),
+            Value<double> quantity = const Value.absent(),
+          }) =>
+              ShoppingListItemsCompanion(
+            productId: productId,
+            quantity: quantity,
+          ),
+          createCompanionCallback: ({
+            Value<int> productId = const Value.absent(),
+            required double quantity,
+          }) =>
+              ShoppingListItemsCompanion.insert(
+            productId: productId,
+            quantity: quantity,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (
+                    e.readTable(table),
+                    $$ShoppingListItemsTableReferences(db, table, e)
+                  ))
+              .toList(),
+          prefetchHooksCallback: ({productId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins: <
+                  T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic>>(state) {
+                if (productId) {
+                  state = state.withJoin(
+                    currentTable: table,
+                    currentColumn: table.productId,
+                    referencedTable:
+                        $$ShoppingListItemsTableReferences._productIdTable(db),
+                    referencedColumn: $$ShoppingListItemsTableReferences
+                        ._productIdTable(db)
+                        .id,
+                  ) as T;
+                }
+
+                return state;
+              },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ));
+}
+
+typedef $$ShoppingListItemsTableProcessedTableManager = ProcessedTableManager<
+    _$AppDatabase,
+    $ShoppingListItemsTable,
+    ShoppingListItem,
+    $$ShoppingListItemsTableFilterComposer,
+    $$ShoppingListItemsTableOrderingComposer,
+    $$ShoppingListItemsTableCreateCompanionBuilder,
+    $$ShoppingListItemsTableUpdateCompanionBuilder,
+    (ShoppingListItem, $$ShoppingListItemsTableReferences),
+    ShoppingListItem,
+    PrefetchHooks Function({bool productId})>;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -1971,4 +2370,6 @@ class $AppDatabaseManager {
       $$RecipeProductsTableTableManager(_db, _db.recipeProducts);
   $$MealsTableTableManager get meals =>
       $$MealsTableTableManager(_db, _db.meals);
+  $$ShoppingListItemsTableTableManager get shoppingListItems =>
+      $$ShoppingListItemsTableTableManager(_db, _db.shoppingListItems);
 }

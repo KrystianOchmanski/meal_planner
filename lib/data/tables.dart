@@ -23,6 +23,14 @@ class RecipeProducts extends Table {
   RealColumn get quantity => real()();
 }
 
+class ShoppingListItems extends Table {
+  IntColumn get productId => integer().customConstraint('REFERENCES products(id) NOT NULL')();
+  RealColumn get quantity => real()();
+
+  @override
+  Set<Column> get primaryKey => {productId};
+}
+
 class Meals extends Table {
   IntColumn get id => integer().autoIncrement()(); // Primary Key
   DateTimeColumn get date => dateTime()();

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:meal_planner/data/database.dart';
+import 'package:meal_planner/data/models/shopping_list_item_with_details.dart';
 
 class ShoppingListScreen extends StatefulWidget {
   const ShoppingListScreen({super.key});
@@ -28,29 +29,40 @@ class ProductListScreen extends StatelessWidget {
       appBar: AppBar(
         title: Text('Lista Produktów'),
       ),
-      body: FutureBuilder<List<Product>>(
-        future: db.getAllProducts(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return CircularProgressIndicator();
-          } else if (snapshot.hasError) {
-            return Text('Błąd: ${snapshot.error}');
-          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return Text('Brak produktów');
-          } else {
-            final products = snapshot.data!;
-            return ListView.builder(
-              itemCount: products.length,
-              itemBuilder: (context, index) {
-                final product = products[index];
-                return ListTile(
-                  title: Text(product.name),
-                  subtitle: Text('${product.category} ${product.unit}'),
+      body: Column(
+        children: [
+          FutureBuilder<List<ShoppingListItemWithDetails>>(
+            future: db.getShoppingListItemsWithDetails(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return CircularProgressIndicator();
+              } else if (snapshot.hasError) {
+                return Text('Błąd: ${snapshot.error}');
+              } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                return Text('Brak produktów');
+              } else {
+                final items = snapshot.data!;
+                return ListView.builder(
+                  itemCount: items.length,
+                  itemBuilder: (context, index) {
+                    final item = items[index];
+                    return ListTile(
+                      title: Text(item.productName),
+                      subtitle: Text('${item.quantity} ${item.unit}'),
+                    );
+                  },
                 );
-              },
-            );
-          }
-        },
+              }
+            },
+          ),
+          Expanded(
+            child: Center(
+              child: ElevatedButton(
+                  onPressed: null, 
+                  child: Text('Generuj')),
+            ),
+          )
+        ],
       ),
     );
   }

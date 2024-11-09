@@ -1,4 +1,4 @@
-import '../data/tables.dart';
+import '../tables.dart';
 
 class MealWithRecipe {
   final int id;
