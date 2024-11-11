@@ -7,8 +7,9 @@ import 'package:drift/drift.dart' hide Column;
 
 class AddOrEditRecipeScreen extends StatefulWidget {
   final Recipe? recipe;
+  final List<Product> allProducts;
 
-  const AddOrEditRecipeScreen({super.key, this.recipe});
+  const AddOrEditRecipeScreen({super.key, this.recipe, required this.allProducts});
 
   @override
   State<AddOrEditRecipeScreen> createState() => _AddOrEditRecipeScreenState();
@@ -22,14 +23,11 @@ class _AddOrEditRecipeScreenState extends State<AddOrEditRecipeScreen> {
   int _servings = 1;
   List<RecipeProductsCompanion> _recipeProductsCompanion = [];
 
-  List<Product> _allProducts = [];
   NumberFormat formatter = NumberFormat('#.##');
 
   @override
   void initState() {
     super.initState();
-
-    loadProductsFromDb();
 
     if(widget.recipe != null){
       _titleController.text = widget.recipe!.title;
@@ -136,7 +134,7 @@ class _AddOrEditRecipeScreenState extends State<AddOrEditRecipeScreen> {
                           SizedBox(
                             width: 110,
                             child: Text(
-                                _allProducts
+                                widget.allProducts
                                     .firstWhere((Product product){
                                       return product.id == _recipeProductsCompanion[index].productId.value;})
                                     .name,
@@ -145,7 +143,7 @@ class _AddOrEditRecipeScreenState extends State<AddOrEditRecipeScreen> {
                           ),
                           Text(
                                 '${formatter.format(_recipeProductsCompanion[index].quantity.value)} '
-                                    '${_allProducts.firstWhere((product) => product.id == _recipeProductsCompanion[index].productId.value).unit}'
+                                    '${widget.allProducts.firstWhere((product) => product.id == _recipeProductsCompanion[index].productId.value).unit}'
                           ),
                           Spacer(),
                           IconButton(
@@ -216,7 +214,7 @@ class _AddOrEditRecipeScreenState extends State<AddOrEditRecipeScreen> {
                           return const Iterable<Product>.empty();
                         }
                         final input = textEditingValue.text.toLowerCase();
-                        return _allProducts
+                        return widget.allProducts
                             .where((product) =>
                             product.name.toLowerCase().contains(input))
                             .toList()
@@ -254,7 +252,7 @@ class _AddOrEditRecipeScreenState extends State<AddOrEditRecipeScreen> {
                             if (value == null || value.isEmpty) {
                               return 'Nazwa produktu nie może być pusta';
                             }
-                            if (!_allProducts
+                            if (!widget.allProducts
                                 .map((e) => e.name.toLowerCase())
                                 .contains(value.toLowerCase())) {
                               return 'Produkt nie znajduje się na liście produktów';
@@ -341,16 +339,8 @@ class _AddOrEditRecipeScreenState extends State<AddOrEditRecipeScreen> {
         ));
   }
 
-
-  void loadProductsFromDb() async {
-    var products = await db.getAllProducts();
-    setState(() {
-      _allProducts = products;
-    });
-  }
-
   void addRecipeProduct(int productToAddId, TextEditingController productQuantityController) {
-    double quantity = double.parse(productQuantityController.text);
+    final quantity = double.parse(productQuantityController.text.replaceAll(',', '.'));
 
     RecipeProductsCompanion newRecipeProduct = RecipeProductsCompanion(
         productId: Value(productToAddId),

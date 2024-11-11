@@ -45,8 +45,13 @@ class AppDatabase extends _$AppDatabase {
   }
 
   // SHOPPINGLISTITEMS
-  Future<int> insertShoppingListItem(ShoppingListItemsCompanion item){
-    return into(shoppingListItems).insert(item);
+  Future<int> insertShoppingListItem(int id, double quantity){
+    return into(shoppingListItems).insert(
+      ShoppingListItemsCompanion(
+        productId: Value(id),
+        quantity: Value(quantity)
+      )
+    );
   }
   Future<List<ShoppingListItem>> getAllShoppingListItems(){
     return select(shoppingListItems).get();
@@ -70,9 +75,25 @@ class AppDatabase extends _$AppDatabase {
 
     return result;
   }
-  Future<bool> updateShoppingListItem(ShoppingListItem item){
-    return update(shoppingListItems).replace(item);
+  Future<void> updateShoppingListItemQuantity(int productId, double newQuantity) async {
+    await (update(shoppingListItems)
+      ..where((item) => item.productId.equals(productId)))
+        .write(ShoppingListItemsCompanion(quantity: Value(newQuantity)));
   }
+  Future<void> addOrUpdateShoppingListItem(int productId, double quantity) async {
+    // Sprawdź, czy produkt o danym ID już istnieje na liście zakupów
+    final existingItem = await getShoppingListItemByProductId(productId);
+
+    if (existingItem != null) {
+      // Jeśli produkt już istnieje, zwiększ jego ilość
+      final newQuantity = existingItem.quantity + quantity;
+      await updateShoppingListItemQuantity(productId, newQuantity);
+    } else {
+      // Jeśli produkt nie istnieje, dodaj nowy produkt do bazy
+      await insertShoppingListItem(productId, quantity);
+    }
+  }
+
   Future<int> deleteShoppingListItem(int id){
     return (delete(shoppingListItems)..where((tbl) => tbl.productId.equals(id))).go();
   }

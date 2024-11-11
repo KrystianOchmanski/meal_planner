@@ -4,8 +4,9 @@ import 'package:meal_planner/data/database.dart';
 import 'add_edit_recipe_screen.dart';
 
 class RecipeScreen extends StatefulWidget {
+  final List<Product> allProducts;
 
-  const RecipeScreen({super.key});
+  const RecipeScreen({super.key, required this.allProducts});
 
   @override
   State<StatefulWidget> createState() => _RecipeScreenState();
@@ -102,7 +103,7 @@ class _RecipeScreenState extends State<RecipeScreen> {
                           context,
                           MaterialPageRoute(
                             builder: (context) => AddOrEditRecipeScreen(
-                              recipe: recipe,
+                              recipe: recipe, allProducts: widget.allProducts,
                             ),
                           ),
                         );
@@ -124,13 +125,14 @@ class _RecipeScreenState extends State<RecipeScreen> {
         ],
       ),
       floatingActionButton: FloatingActionButton(
+        heroTag: 'addRecipeFAB',
         onPressed: () async {
           // Przekierowanie do AddOrEditRecipeScreen i oczekiwanie na wynik
           await Navigator.push(
             context,
             MaterialPageRoute(
               builder: (context) => AddOrEditRecipeScreen(
-                recipe: null,
+                recipe: null, allProducts: widget.allProducts,
               ),
             ),
           );

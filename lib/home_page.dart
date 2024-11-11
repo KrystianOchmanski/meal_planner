@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:meal_planner/data/database.dart';
 import 'package:meal_planner/meal_screen.dart';
 import 'package:meal_planner/recipe_screen.dart';
 import 'package:meal_planner/shopping_list_screen.dart';
@@ -16,19 +17,22 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   late List<Widget> screens;
   var _currentIndex = 0;
+  List<Product> _allProducts = [];
 
   @override
   void initState() {
     super.initState();
-    screens = [
-      MealScreen(),
-      RecipeScreen(),
-      ShoppingListScreen()
-    ];
+    _loadAllProducts();
   }
 
   @override
   Widget build(BuildContext context) {
+    screens = [
+      MealScreen(),
+      RecipeScreen(allProducts: _allProducts),
+      ShoppingListScreen(allProducts: _allProducts)
+    ];
+
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
@@ -57,5 +61,12 @@ class _HomePageState extends State<HomePage> {
                 icon: Icon(Icons.shopping_basket), label: "Lista zakupów"),
           ]),
     );
+  }
+
+  void _loadAllProducts() async {
+    var products = await AppDatabase.instance.getAllProducts();
+    setState(() {
+      _allProducts = products;
+    });
   }
 }
