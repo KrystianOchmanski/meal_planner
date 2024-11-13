@@ -2,9 +2,9 @@ import 'package:drift/drift.dart';
 import 'package:drift_flutter/drift_flutter.dart';
 import 'package:meal_planner/data/tables.dart';
 
-import 'models/meal_with_recipe.dart';
+import 'DTOs/meal_with_recipe.dart';
 import 'initialData.dart';
-import 'models/shopping_list_item_with_details.dart';
+import 'DTOs/shopping_list_item_with_details.dart';
 
 part 'database.g.dart';
 
@@ -93,9 +93,11 @@ class AppDatabase extends _$AppDatabase {
       await insertShoppingListItem(productId, quantity);
     }
   }
-
   Future<int> deleteShoppingListItem(int id){
     return (delete(shoppingListItems)..where((tbl) => tbl.productId.equals(id))).go();
+  }
+  Future<void> deleteAllShoppingListItems() async {
+    await (delete(shoppingListItems)).go();
   }
 
 
@@ -159,10 +161,15 @@ class AppDatabase extends _$AppDatabase {
     return await select(meals).get();
   }
   Future<List<Meal>> getMealsByDate(DateTime date) async {
-    return await (select(meals)..where((tbl) => tbl.date.equals(date))).get();
+    final startOfDay = DateTime(date.year, date.month, date.day);
+    final endOfDay = DateTime(date.year, date.month, date.day, 23, 59, 59);
+    return await (select(meals)..where((tbl) => tbl.date.isBetweenValues(startOfDay, endOfDay))).get();
+  }
+  Future<List<Meal>> getMealsByDateRange(DateTime startDate, DateTime endDate) async {
+    endDate = DateTime(endDate.year, endDate.month, endDate.day, 23, 59, 59);
+    return await (select(meals)..where((tbl) => tbl.date.isBetweenValues(startDate, endDate))).get();
   }
   Future<List<MealWithRecipe>> getMealsWithRecipeTitleForDate(DateTime selectedDate) {
-    // Ustawienie zakresu na dany dzień
     final startOfDay = DateTime(selectedDate.year, selectedDate.month, selectedDate.day);
     final endOfDay = DateTime(selectedDate.year, selectedDate.month, selectedDate.day, 23, 59, 59);
 

@@ -301,6 +301,17 @@ class _AddOrEditRecipeScreenState extends State<AddOrEditRecipeScreen> {
                               }
                               return null;
                             },
+                            onChanged: (value) {
+                              // Zapobiegamy wprowadzeniu trzeciej cyfry po przecinku
+                              if (value.contains(',') || value.contains('.')) {
+                                final parts = value.split(RegExp('[.,]'));
+                                if (parts.length > 1 && parts[1].length > 2) {
+                                  productQuantityController.text = '${parts[0]}.${parts[1].substring(0, 2)}';
+                                  productQuantityController.selection = TextSelection.fromPosition(
+                                      TextPosition(offset: productQuantityController.text.length));
+                                }
+                              }
+                            },
                           ),
                         ),
                         const SizedBox(width: 5),

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:meal_planner/data/database.dart';
 import 'package:meal_planner/data/tables.dart';
-import 'package:meal_planner/data/models/meal_with_recipe.dart';
+import 'package:meal_planner/data/DTOs/meal_with_recipe.dart';
 import 'package:meal_planner/widgets/meal_row.dart';
 import 'package:meal_planner/widgets/weekly_date_picker.dart';
 

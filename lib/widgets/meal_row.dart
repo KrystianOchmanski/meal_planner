@@ -2,7 +2,7 @@ import 'package:drift/drift.dart' hide Column;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:meal_planner/data/database.dart';
-import 'package:meal_planner/data/models/meal_with_recipe.dart';
+import 'package:meal_planner/data/DTOs/meal_with_recipe.dart';
 
 import '../data/tables.dart';
 
@@ -52,7 +52,7 @@ class _MealRowState extends State<MealRow> {
                     fontWeight: FontWeight.w300, color: Colors.black54)
               )
               : Text(
-                widget.mealWithRecipe!.recipeTitle,
+                '${widget.mealWithRecipe!.recipeTitle} x ${widget.mealWithRecipe!.servings.toString()}',
                 style: GoogleFonts.poppins(
                   color: Colors.green,
                   fontWeight: FontWeight.w500,

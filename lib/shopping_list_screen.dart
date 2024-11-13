@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:meal_planner/data/database.dart';
-import 'package:meal_planner/data/models/shopping_list_item_with_details.dart';
+import 'package:meal_planner/data/DTOs/shopping_list_item_with_details.dart';
 import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 
 class ShoppingListScreen extends StatefulWidget {
@@ -11,12 +11,11 @@ class ShoppingListScreen extends StatefulWidget {
   const ShoppingListScreen({super.key, required this.allProducts});
 
   @override
-  State<StatefulWidget> createState() => _ShoppingListScreenState();
+  State<StatefulWidget> createState() => ShoppingListScreenState();
 }
 
-class _ShoppingListScreenState extends State<ShoppingListScreen> {
+class ShoppingListScreenState extends State<ShoppingListScreen> {
   final db = AppDatabase.instance;
-  DateTimeRange? selectedDateRange;
 
   @override
   void initState() {
@@ -30,13 +29,27 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
         mainAxisSize: MainAxisSize.min,
         children: [
           SizedBox(height: 10),
-          Center(
-            child: ElevatedButton(
-              onPressed: () => _selectDateRange(context),
-              child: Text(selectedDateRange == null
-                  ? 'Generuj listę zakupów'
-                  : 'Wybrano: ${selectedDateRange!.start} - ${selectedDateRange!.end}'),
-            ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Spacer(flex: 1,),
+              Expanded(
+                flex: 2,
+                child: ElevatedButton(
+                  onPressed: showGenerateShoppingListDialog,
+                  child: Text('Generuj listę zakupów'),
+                ),
+              ),
+              Expanded(
+                flex: 1,
+                child: Align(
+                  alignment: Alignment.centerRight,
+                  child: IconButton(
+                    onPressed: showDeleteAllItemsDialog,
+                    icon: Icon(Icons.delete)),
+                ),
+              )
+            ],
           ),
           SizedBox(height: 10),
           Expanded(
@@ -55,10 +68,10 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                       final item = items[index];
                       return ListTile(
                         title: Text(item.productName),
-                        subtitle: Text('${item.quantity} ${item.unit}'),
+                        subtitle: Text('${item.quantity == item.quantity.toInt() ? item.quantity.toInt() : item.quantity.toStringAsFixed(2)} ${item.unit}'),
                         trailing: IconButton(
                           onPressed: (){
-                            _deleteProduct(item.productId);
+                            deleteProduct(item.productId);
                           },
                           icon: Icon(Icons.cancel_outlined))
                       );
@@ -71,42 +84,56 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
         ],
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _showAddProductDialog,
+        onPressed: showAddProductDialog,
         tooltip: 'Dodaj produkt',
         child: Icon(Icons.add),
       ),
     );
   }
 
-  Future<void> _selectDateRange(BuildContext context) async {
-    await showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Wybierz zakres dat'),
-          content: SizedBox(
-            width: 300,
-            height: 300,
-            child: SfDateRangePicker(
-              selectionMode: DateRangePickerSelectionMode.range,
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text('Anuluj', style: GoogleFonts.poppins(color: Colors.red)),
-            ),
-            ElevatedButton(
-              onPressed: null,
-              child: Text('Generuj', style: GoogleFonts.poppins()),
-            ),
-          ],
-        );
-      },
+  void showGenerateShoppingListDialog(){
+    DateTime? startDate;
+    DateTime? endDate;
+
+    showDialog(
+        context: context,
+        builder: (context) => StatefulBuilder(
+            builder: (context, setState) {
+              return AlertDialog(
+                title: Text('Wybierz zakres dat'),
+                content: SizedBox(
+                  width: 300,
+                  height: 300,
+                  child: SfDateRangePicker(
+                    selectionMode: DateRangePickerSelectionMode.range,
+                    onSelectionChanged: (args){
+                      setState(() {
+                        startDate = args.value.startDate;
+                        endDate = args.value.endDate ?? args.value.startDate;
+                      });
+                    },
+                  ),
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: Text('Anuluj', style: GoogleFonts.poppins(color: Colors.red)),
+                  ),
+                  ElevatedButton(
+                    onPressed: (startDate == null) ? null : (){
+                      generateShoppingList(startDate!, endDate!);
+                      Navigator.pop(context);
+                    },
+                    child: Text('Generuj', style: GoogleFonts.poppins()),
+                  ),
+                ],
+              );
+            }
+        )
     );
   }
 
-  void _showAddProductDialog() {
+  void showAddProductDialog() {
     int? productToAddId;
     String productUnit = '';
     TextEditingController productIdController = TextEditingController();
@@ -234,6 +261,17 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                               }
                               return null;
                             },
+                            onChanged: (value) {
+                              // Zapobiegamy wprowadzeniu trzeciej cyfry po przecinku
+                              if (value.contains(',') || value.contains('.')) {
+                                final parts = value.split(RegExp('[.,]'));
+                                if (parts.length > 1 && parts[1].length > 2) {
+                                  productQuantityController.text = '${parts[0]}.${parts[1].substring(0, 2)}';
+                                  productQuantityController.selection = TextSelection.fromPosition(
+                                      TextPosition(offset: productQuantityController.text.length));
+                                }
+                              }
+                            },
                           ),
                         ),
                         const SizedBox(width: 5),
@@ -251,7 +289,7 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                 ElevatedButton(
                   onPressed: () {
                     if (dialogFormKey.currentState!.validate()) {
-                      _addProductToList(
+                      addProductToList(
                           productToAddId!, productQuantityController);
                       productUnit = '';
                       productIdController.clear();
@@ -282,7 +320,7 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
     );
   }
 
-  void _addProductToList(int productId, TextEditingController productQuantityController) async {
+  void addProductToList(int productId, TextEditingController productQuantityController) async {
     final quantity = double.parse(productQuantityController.text.replaceAll(',', '.'));
 
     await db.addOrUpdateShoppingListItem(productId, quantity);
@@ -292,8 +330,90 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
     });
   }
 
-  void _deleteProduct(int productId) async {
+  void deleteProduct(int productId) async {
     await db.deleteShoppingListItem(productId);
+    setState(() {
+      db.getShoppingListItemsWithDetails();
+    });
+  }
+
+  void deleteAllProducts() async {
+    await db.deleteAllShoppingListItems();
+    setState(() {
+      db.getShoppingListItemsWithDetails();
+    });
+  }
+
+  void showDeleteAllItemsDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(
+            'Czy na pewno chcesz usunąć wszystkie produkty z listy?',
+            style: GoogleFonts.poppins(fontSize: 18),
+          ),
+          actions: [
+            TextButton(
+              onPressed: (){
+                Navigator.pop(context);
+              },
+              child: Text('Anuluj')
+            ),
+            ElevatedButton(
+              onPressed: () {
+                deleteAllProducts();
+                Navigator.pop(context);
+              },
+              style: ButtonStyle(
+                backgroundColor: WidgetStateProperty.all<Color>(Colors.red),
+                foregroundColor: WidgetStateProperty.all<Color>(Colors.white),
+              ),
+              child: Text('Usuń'),
+            )
+          ],
+        );
+      }
+    );
+  }
+
+  Future<void> generateShoppingList(DateTime startDate, DateTime endDate) async {
+    // Pobieramy wszystkie posiłki w zadanym zakresie dat
+    final mealsInRange = await db.getMealsByDateRange(startDate, endDate);
+    if(mealsInRange.isEmpty) {
+      return;
+    }
+
+    // Tworzymy mapę produktów i ich ilości
+    final Map<int, double> shoppingList = {};
+
+    // Iterujemy przez każde danie w tabeli Meals
+    for(var meal in mealsInRange){
+      // Pobieramy przepis dla danego posiłku
+      final recipe = await db.getRecipeById(meal.recipeId);
+      // Pobieramy produkty związane z danym przepisem
+      final recipeProducts = await db.getProductsForRecipe(meal.recipeId);
+
+      // Iterujemy przez produkty w przepisie
+      for(var recipeProduct in recipeProducts){
+        // Obliczamy ilość produktu dla tego dania
+        final productQuantity = (meal.servings / recipe!.servings) * recipeProduct.quantity;
+
+        // Dodajemy lub aktualizujemy ilość produktu w liście zakupów
+        if (shoppingList.containsKey(recipeProduct.productId)) {
+          shoppingList[recipeProduct.productId] =
+              shoppingList[recipeProduct.productId]! + productQuantity;
+        } else {
+          shoppingList[recipeProduct.productId] = productQuantity;
+        }
+      }
+    }
+
+    for(var item in shoppingList.entries){
+      await db.addOrUpdateShoppingListItem(item.key, item.value);
+    }
+
+    // Odświeżamy widok listy
     setState(() {
       db.getShoppingListItemsWithDetails();
     });
