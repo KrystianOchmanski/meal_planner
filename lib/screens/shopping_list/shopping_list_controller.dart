@@ -1,94 +1,11 @@
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:meal_planner/data/database.dart';
-import 'package:meal_planner/data/DTOs/shopping_list_item_with_details.dart';
-import 'package:syncfusion_flutter_datepicker/datepicker.dart';
+part of 'shopping_list_screen.dart';
 
-class ShoppingListScreen extends StatefulWidget {
-  final List<Product> allProducts;
-
-  const ShoppingListScreen({super.key, required this.allProducts});
-
-  @override
-  State<StatefulWidget> createState() => ShoppingListScreenState();
-}
-
-class ShoppingListScreenState extends State<ShoppingListScreen> {
+abstract class ShoppingListController extends State<ShoppingListScreen>{
   final db = AppDatabase.instance;
 
   @override
   void initState() {
     super.initState();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          SizedBox(height: 10),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Spacer(flex: 1,),
-              Expanded(
-                flex: 2,
-                child: ElevatedButton(
-                  onPressed: showGenerateShoppingListDialog,
-                  child: Text('Generuj listę zakupów'),
-                ),
-              ),
-              Expanded(
-                flex: 1,
-                child: Align(
-                  alignment: Alignment.centerRight,
-                  child: IconButton(
-                    onPressed: showDeleteAllItemsDialog,
-                    icon: Icon(Icons.delete)),
-                ),
-              )
-            ],
-          ),
-          SizedBox(height: 10),
-          Expanded(
-            child: FutureBuilder<List<ShoppingListItemWithDetails>>(
-              future: db.getShoppingListItemsWithDetails(),
-              builder: (context, snapshot) {
-                if (snapshot.hasError) {
-                  return Center(child: Text('Błąd: ${snapshot.error}'));
-                } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  return Center(child: Text('Brak produktów', style: TextStyle(color: Colors.grey)));
-                } else {
-                  final items = snapshot.data!;
-                  return ListView.builder(
-                    itemCount: items.length,
-                    itemBuilder: (context, index) {
-                      final item = items[index];
-                      return ListTile(
-                        title: Text(item.productName),
-                        subtitle: Text('${item.quantity == item.quantity.toInt() ? item.quantity.toInt() : item.quantity.toStringAsFixed(2)} ${item.unit}'),
-                        trailing: IconButton(
-                          onPressed: (){
-                            deleteProduct(item.productId);
-                          },
-                          icon: Icon(Icons.cancel_outlined))
-                      );
-                    },
-                  );
-                }
-              },
-            ),
-          ),
-        ],
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: showAddProductDialog,
-        tooltip: 'Dodaj produkt',
-        child: Icon(Icons.add),
-      ),
-    );
   }
 
   void showGenerateShoppingListDialog(){
@@ -346,34 +263,34 @@ class ShoppingListScreenState extends State<ShoppingListScreen> {
 
   void showDeleteAllItemsDialog() {
     showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text(
-            'Czy na pewno chcesz usunąć wszystkie produkty z listy?',
-            style: GoogleFonts.poppins(fontSize: 18),
-          ),
-          actions: [
-            TextButton(
-              onPressed: (){
-                Navigator.pop(context);
-              },
-              child: Text('Anuluj')
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text(
+              'Czy na pewno chcesz usunąć wszystkie produkty z listy?',
+              style: GoogleFonts.poppins(fontSize: 18),
             ),
-            ElevatedButton(
-              onPressed: () {
-                deleteAllProducts();
-                Navigator.pop(context);
-              },
-              style: ButtonStyle(
-                backgroundColor: WidgetStateProperty.all<Color>(Colors.red),
-                foregroundColor: WidgetStateProperty.all<Color>(Colors.white),
+            actions: [
+              TextButton(
+                  onPressed: (){
+                    Navigator.pop(context);
+                  },
+                  child: Text('Anuluj')
               ),
-              child: Text('Usuń'),
-            )
-          ],
-        );
-      }
+              ElevatedButton(
+                onPressed: () {
+                  deleteAllProducts();
+                  Navigator.pop(context);
+                },
+                style: ButtonStyle(
+                  backgroundColor: WidgetStateProperty.all<Color>(Colors.red),
+                  foregroundColor: WidgetStateProperty.all<Color>(Colors.white),
+                ),
+                child: Text('Usuń'),
+              )
+            ],
+          );
+        }
     );
   }
 

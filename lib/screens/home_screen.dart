@@ -1,38 +1,19 @@
-import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:meal_planner/data/database.dart';
-import 'package:meal_planner/meal_screen.dart';
-import 'package:meal_planner/recipe_screen.dart';
-import 'package:meal_planner/shopping_list_screen.dart';
+import 'package:meal_planner/commons.dart';
 
-class HomePage extends StatefulWidget {
+part 'home_controller.dart';
+
+class HomeScreen extends StatefulWidget {
   final String title;
 
-  const HomePage({super.key, required this.title});
+  const HomeScreen({super.key, required this.title});
 
   @override
-  State<HomePage> createState() => _HomePageState();
+  State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomePageState extends State<HomePage> {
-  late List<Widget> screens;
-  var _currentIndex = 0;
-  List<Product> _allProducts = [];
-
-  @override
-  void initState() {
-    super.initState();
-    _loadAllProducts();
-  }
-
+class _HomeScreenState extends HomeController {
   @override
   Widget build(BuildContext context) {
-    screens = [
-      MealScreen(),
-      RecipeScreen(allProducts: _allProducts),
-      ShoppingListScreen(allProducts: _allProducts)
-    ];
-
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
@@ -46,7 +27,6 @@ class _HomePageState extends State<HomePage> {
         children: screens,
       ),
       bottomNavigationBar: BottomNavigationBar(
-          // selectedItemColor: Colors.deepPurple,
           unselectedItemColor: Colors.black38,
           currentIndex: _currentIndex,
           onTap: (index) => setState(() {
@@ -63,10 +43,5 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  void _loadAllProducts() async {
-    var products = await AppDatabase.instance.getAllProducts();
-    setState(() {
-      _allProducts = products;
-    });
-  }
+
 }

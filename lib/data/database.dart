@@ -3,8 +3,8 @@ import 'package:drift_flutter/drift_flutter.dart';
 import 'package:meal_planner/data/tables.dart';
 
 import 'DTOs/meal_with_recipe.dart';
-import 'initialData.dart';
 import 'DTOs/shopping_list_item_with_details.dart';
+import 'initialData.dart';
 
 part 'database.g.dart';
 

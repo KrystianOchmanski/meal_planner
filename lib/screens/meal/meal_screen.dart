@@ -1,30 +1,15 @@
-import 'package:flutter/material.dart';
-import 'package:meal_planner/data/database.dart';
-import 'package:meal_planner/data/tables.dart';
-import 'package:meal_planner/data/DTOs/meal_with_recipe.dart';
-import 'package:meal_planner/widgets/meal_row.dart';
-import 'package:meal_planner/widgets/weekly_date_picker.dart';
+import 'package:meal_planner/commons.dart';
+
+part 'meal_controller.dart';
 
 class MealScreen extends StatefulWidget {
-  final AppDatabase db = AppDatabase.instance;
-
-  MealScreen({super.key});
+  const MealScreen({super.key});
 
   @override
   State<StatefulWidget> createState() => _MealScreenState();
 }
 
-class _MealScreenState extends State<MealScreen> {
-  DateTime _selectedDay = DateTime.now();
-  Map<MealType, MealWithRecipe> _mealsWithRecipe = {};
-  bool _isLoading = true;
-
-  @override
-  void initState() {
-    _loadMealsForSelectedDay();
-    super.initState();
-  }
-
+class _MealScreenState extends MealController {
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
@@ -50,23 +35,5 @@ class _MealScreenState extends State<MealScreen> {
         ],
       ),
     );
-  }
-
-  void _onDateSelected(DateTime date) {
-    setState(() {
-      _selectedDay = date;
-      _isLoading = true;
-    });
-    _loadMealsForSelectedDay();
-  }
-
-  void _loadMealsForSelectedDay() async {
-    final meals = await widget.db.getMealsWithRecipeTitleForDate(_selectedDay);
-    setState(() {
-      _mealsWithRecipe = {
-        for (var meal in meals) meal.mealType: meal
-      };
-      _isLoading = false;
-    });
   }
 }

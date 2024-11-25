@@ -1,4 +1,4 @@
-import '../tables.dart';
+import 'package:meal_planner/commons.dart';
 
 class MealWithRecipe {
   final int id;
