@@ -9,11 +9,6 @@ abstract class HomeController extends State<HomeScreen>{
   void initState() {
     super.initState();
     _loadAllProducts();
-    screens = [
-      MealScreen(),
-      RecipeScreen(allProducts: _allProducts),
-      ShoppingListScreen(allProducts: _allProducts)
-    ];
   }
 
   void _loadAllProducts() async {

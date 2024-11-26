@@ -14,6 +14,12 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends HomeController {
   @override
   Widget build(BuildContext context) {
+    screens = [
+      MealScreen(),
+      RecipeScreen(allProducts: _allProducts),
+      ShoppingListScreen(allProducts: _allProducts)
+    ];
+
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
