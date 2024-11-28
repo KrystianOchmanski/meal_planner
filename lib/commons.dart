@@ -17,3 +17,4 @@ export 'package:meal_planner/screens/add_edit_recipe/add_edit_recipe_screen.dart
 export 'package:meal_planner/screens/meal/meal_screen.dart';
 export 'package:meal_planner/screens/recipe/recipe_screen.dart';
 export 'package:meal_planner/screens/shopping_list/shopping_list_screen.dart';
+export 'package:meal_planner/utils.dart';

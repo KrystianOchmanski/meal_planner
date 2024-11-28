@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
 import 'package:meal_planner/screens/home_screen.dart';
+import 'package:meal_planner/commons.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -21,8 +21,4 @@ class MyApp extends StatelessWidget {
       home: HomeScreen(title: Strings.title),
     );
   }
-}
-
-class Strings {
-  static const String title = "Meal Planner";
 }
