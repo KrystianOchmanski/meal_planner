@@ -31,7 +31,7 @@ class _MealScreenState extends MealController {
             children: _mealTypes.map((meal) {
               final mealType = meal['mealType'] as MealType;
               return Padding(
-                padding: const EdgeInsets.only(bottom: 10),
+                padding: const EdgeInsets.only(bottom: 16),
                 child: MealRow(
                   title: meal['title'] as String,
                   mealWithRecipe: _mealsWithRecipe[mealType],

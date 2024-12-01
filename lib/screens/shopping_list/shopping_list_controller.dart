@@ -25,6 +25,7 @@ abstract class ShoppingListController extends State<ShoppingListScreen>{
                   height: 300,
                   child: SfDateRangePicker(
                     selectionMode: DateRangePickerSelectionMode.range,
+                    backgroundColor: Colors.transparent,
                     onSelectionChanged: (args){
                       setState(() {
                         startDate = args.value.startDate;

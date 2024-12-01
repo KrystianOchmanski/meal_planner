@@ -69,22 +69,24 @@ class ShoppingListScreenState extends ShoppingListController {
                             padding: const EdgeInsets.all(8.0),
                             child: Text(
                               category,
-                              style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 22),
+                              style: GoogleFonts.poppins(fontWeight: FontWeight.w300, fontSize: 24),
                             ),
                           ),
                           ...products.map((item) {
-                            return ListTile(
-                              title: Text(item.productName),
-                              subtitle: Text(
-                                '${item.quantity == item.quantity.toInt() ? item
-                                    .quantity.toInt() : item.quantity
-                                    .toStringAsFixed(2)} ${item.unit}',
-                              ),
-                              trailing: IconButton(
-                                onPressed: () {
-                                  deleteProduct(item.productId);
-                                },
-                                icon: Icon(Icons.cancel_outlined),
+                            return Card(
+                              child: ListTile(
+                                title: Text(item.productName),
+                                subtitle: Text(
+                                  '${item.quantity == item.quantity.toInt() ? item
+                                      .quantity.toInt() : item.quantity
+                                      .toStringAsFixed(2)} ${item.unit}',
+                                ),
+                                trailing: IconButton(
+                                  onPressed: () {
+                                    deleteProduct(item.productId);
+                                  },
+                                  icon: Icon(Icons.cancel_outlined),
+                                ),
                               ),
                             );
                           }),

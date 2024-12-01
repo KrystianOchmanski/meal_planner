@@ -15,7 +15,7 @@ class _RecipeScreenState extends RecipeController {
     return Scaffold(
       body: Column(
         children: [
-          if(_isSelectionMode)
+          if (_isSelectionMode)
             Padding(
               padding: const EdgeInsets.all(5.0),
               child: Row(
@@ -23,109 +23,127 @@ class _RecipeScreenState extends RecipeController {
                 children: [
                   Text(
                     'Wybrano ${_selectedRecipes.length}',
-                    style: TextStyle(fontSize: 18),
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   IconButton(
-                      onPressed: _deleteSelectedRecipes, 
-                      icon: Icon(Icons.delete)
+                    onPressed: _deleteSelectedRecipes,
+                    icon: Icon(Icons.delete, color: Colors.red),
                   ),
                   IconButton(
-                      onPressed: _selectAllRecipes, 
-                      icon: Icon(Icons.select_all_sharp)
+                    onPressed: _selectAllRecipes,
+                    icon: Icon(Icons.select_all_sharp, color: Colors.green),
                   ),
                   TextButton(
-                      onPressed: () {
-                        setState(() {
-                          _isSelectionMode = false;
-                          _selectedRecipes.clear();
-                        });
-                      },
-                      child: Text('Anuluj'))
+                    onPressed: () {
+                      setState(() {
+                        _isSelectionMode = false;
+                        _selectedRecipes.clear();
+                      });
+                    },
+                    child: Text('Anuluj', style: TextStyle(color: Colors.grey)),
+                  )
                 ],
               ),
             ),
-          if(_recipesList.isEmpty)
+          if (_recipesList.isEmpty)
             const Center(
               child: Padding(
                 padding: EdgeInsets.all(20),
-                child: Text('Dodaj pierwszy przepis', style: TextStyle(color: Colors.grey)),
+                child: Text(
+                  'Dodaj pierwszy przepis',
+                  style: TextStyle(color: Colors.grey, fontSize: 18),
+                ),
               ),
             )
-          else Expanded(
-            child: ListView.builder(
+          else
+            Expanded(
+              child: ListView.builder(
                 itemCount: _recipesList.length,
                 itemBuilder: (context, index) {
                   final recipe = _recipesList[index];
                   final isSelected = _selectedRecipes.contains(recipe.id);
-                  return ListTile(
-                    leading: _isSelectionMode ?
-                      Checkbox(
-                          value: isSelected,
-                          onChanged: null)
-                      : null,
-                    title: Text(
-                      recipe.title,
-                      style: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.w500),
+                  return Card(
+                    margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                    elevation: 4,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
                     ),
-                    selected: isSelected,
-                    onTap: () async {
-                      if(_isSelectionMode){
-                        // Jeśli jesteśmy w trybie zaznaczania, zaznaczamy/odznaczamy element
-                        setState(() {
-                          if(isSelected){
-                            _selectedRecipes.remove(recipe.id);
-                            if(_selectedRecipes.isEmpty){
-                              _isSelectionMode = false; // Wyłącz tryb zaznaczania jeśli nic nie jest zaznaczone
-                              _willSelectAll = true;
+                    child: ListTile(
+                      contentPadding: EdgeInsets.all(16),
+                      leading: _isSelectionMode
+                          ? Checkbox(
+                        value: isSelected,
+                        onChanged: null,
+                        activeColor: Colors.green,
+                      )
+                          : Icon(Icons.food_bank, color: Colors.green),
+                      title: Text(
+                        recipe.title,
+                        style: GoogleFonts.poppins(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      subtitle: Text(
+                        "Kliknij, aby edytować",
+                        style: TextStyle(color: Colors.grey),
+                      ),
+                      selected: isSelected,
+                      tileColor: isSelected ? Colors.green[50] : null,
+                      onTap: () async {
+                        if (_isSelectionMode) {
+                          setState(() {
+                            if (isSelected) {
+                              _selectedRecipes.remove(recipe.id);
+                              if (_selectedRecipes.isEmpty) {
+                                _isSelectionMode = false;
+                                _willSelectAll = true;
+                              }
+                            } else {
+                              _selectedRecipes.add(recipe.id);
                             }
-                          } else {
-                            _selectedRecipes.add(recipe.id);
-                          }
-                        });
-                      } else {
-                        // Przekierowanie do ekranu edycji przepisu i oczekiwanie na wynik
-                        await Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => AddOrEditRecipeScreen(
-                              recipe: recipe,
+                          });
+                        } else {
+                          await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => AddOrEditRecipeScreen(
+                                recipe: recipe,
+                              ),
                             ),
-                          ),
-                        );
-                        // Odświeżenie listy przepisów po powrocie
-                        _loadRecipes();
-                        setState(() {});  // Zaktualizowanie stanu, aby zaktualizować UI
-                      }
-                    },
-                    onLongPress: () {
-                      setState(() {
-                        _isSelectionMode = true;
-                        _willSelectAll = true;
-                        _selectedRecipes.add(recipe.id);
-                      });
-                    },
+                          );
+                          _loadRecipes();
+                          setState(() {});
+                        }
+                      },
+                      onLongPress: () {
+                        setState(() {
+                          _isSelectionMode = true;
+                          _willSelectAll = true;
+                          _selectedRecipes.add(recipe.id);
+                        });
+                      },
+                    ),
                   );
-                }),
-          )
+                },
+              ),
+            ),
         ],
       ),
       floatingActionButton: FloatingActionButton(
         heroTag: 'addRecipeFAB',
         onPressed: () async {
-          // Przekierowanie do AddOrEditRecipeScreen i oczekiwanie na wynik
           await Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => AddOrEditRecipeScreen(
-                recipe: null,
-              ),
+              builder: (context) => AddOrEditRecipeScreen(recipe: null),
             ),
           );
-          // Odświeżenie listy przepisów po powrocie
           _loadRecipes();
-          setState(() {});  // Zaktualizowanie stanu, aby zaktualizować UI
+          setState(() {});
         },
-        child: const Icon(Icons.add),
+        child: Icon(Icons.add),
       ),
     );
   }

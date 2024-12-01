@@ -39,8 +39,8 @@ class _MealRowState extends State<MealRow> {
                 '${widget.mealWithRecipe!.recipeTitle} x ${widget.mealWithRecipe!.servings.toString()}',
                 style: GoogleFonts.poppins(
                   color: Colors.green,
-                  fontWeight: FontWeight.w500,
-                  fontSize: 16
+                  fontWeight: FontWeight.w400,
+                  fontSize: 18
                 )
               )
             ],

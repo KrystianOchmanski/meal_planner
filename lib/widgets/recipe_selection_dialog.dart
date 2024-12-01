@@ -96,10 +96,22 @@ class _RecipeSelectionDialogState extends State<RecipeSelectionDialog> {
               child: SingleChildScrollView(
                 child: Column(
                   children: _filteredRecipes!.map((recipe) {
-                    return ListTile(
-                      title: Text(recipe.title, style: GoogleFonts.poppins()),
-                      selected: selectedRecipe == recipe,
-                      onTap: () => setState(() => selectedRecipe = recipe),
+                    return AnimatedContainer(
+                      duration: Duration(milliseconds: 200),
+                      decoration: BoxDecoration(
+                        color: selectedRecipe == recipe ? Colors.lightGreen : Colors.transparent,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: ListTile(
+                        title: Text(
+                          recipe.title,
+                          style: GoogleFonts.poppins(
+                            color: selectedRecipe == recipe ? Colors.white : Colors.black,
+                          ),
+                        ),
+                        selected: selectedRecipe == recipe,
+                        onTap: () => setState(() => selectedRecipe = recipe),
+                      ),
                     );
                   }).toList(),
                 ),
