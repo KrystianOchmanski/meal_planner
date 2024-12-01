@@ -69,6 +69,7 @@ class AppDatabase extends _$AppDatabase {
         productId: row.readTable(shoppingListItems).productId,
         quantity: row.readTable(shoppingListItems).quantity,
         productName: row.readTable(products).name,
+        category: row.readTable(products).category,
         unit: row.readTable(products).unit,
       );
     }).get();

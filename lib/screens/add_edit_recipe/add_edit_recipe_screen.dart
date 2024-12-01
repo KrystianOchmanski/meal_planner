@@ -135,6 +135,7 @@ class _AddOrEditRecipeScreenState extends AddEditRecipeController {
                 TextField(
                   controller: _instructionController,
                   textCapitalization: TextCapitalization.sentences,
+                  maxLines: null,
                   decoration: InputDecoration(
                     hintText: 'Instrukcje...',
                     border: OutlineInputBorder(

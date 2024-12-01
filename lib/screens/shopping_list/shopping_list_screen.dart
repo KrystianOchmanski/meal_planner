@@ -20,7 +20,7 @@ class ShoppingListScreenState extends ShoppingListController {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Spacer(flex: 1,),
+              Spacer(flex: 1),
               Expanded(
                 flex: 2,
                 child: ElevatedButton(
@@ -34,9 +34,10 @@ class ShoppingListScreenState extends ShoppingListController {
                   alignment: Alignment.centerRight,
                   child: IconButton(
                     onPressed: showDeleteAllItemsDialog,
-                    icon: Icon(Icons.delete)),
+                    icon: Icon(Icons.delete),
+                  ),
                 ),
-              )
+              ),
             ],
           ),
           SizedBox(height: 10),
@@ -47,21 +48,47 @@ class ShoppingListScreenState extends ShoppingListController {
                 if (snapshot.hasError) {
                   return Center(child: Text('Błąd: ${snapshot.error}'));
                 } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  return Center(child: Text('Brak produktów', style: TextStyle(color: Colors.grey)));
+                  return Center(
+                    child: Text(
+                        'Brak produktów', style: TextStyle(color: Colors.grey)),
+                  );
                 } else {
                   final items = snapshot.data!;
+                  final groupedItems = groupBy(items, (item) => item.category);
+
                   return ListView.builder(
-                    itemCount: items.length,
+                    itemCount: groupedItems.length,
                     itemBuilder: (context, index) {
-                      final item = items[index];
-                      return ListTile(
-                        title: Text(item.productName),
-                        subtitle: Text('${item.quantity == item.quantity.toInt() ? item.quantity.toInt() : item.quantity.toStringAsFixed(2)} ${item.unit}'),
-                        trailing: IconButton(
-                          onPressed: (){
-                            deleteProduct(item.productId);
-                          },
-                          icon: Icon(Icons.cancel_outlined))
+                      final category = groupedItems.keys.elementAt(index);
+                      final products = groupedItems[category]!;
+
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Text(
+                              category,
+                              style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 22),
+                            ),
+                          ),
+                          ...products.map((item) {
+                            return ListTile(
+                              title: Text(item.productName),
+                              subtitle: Text(
+                                '${item.quantity == item.quantity.toInt() ? item
+                                    .quantity.toInt() : item.quantity
+                                    .toStringAsFixed(2)} ${item.unit}',
+                              ),
+                              trailing: IconButton(
+                                onPressed: () {
+                                  deleteProduct(item.productId);
+                                },
+                                icon: Icon(Icons.cancel_outlined),
+                              ),
+                            );
+                          }),
+                        ],
                       );
                     },
                   );

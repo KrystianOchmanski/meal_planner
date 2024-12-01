@@ -5,6 +5,7 @@ export 'package:intl/intl.dart' hide TextDirection;
 //export 'package:drift/drift.dart';
 export 'package:drift_flutter/drift_flutter.dart';
 export 'package:syncfusion_flutter_datepicker/datepicker.dart';
+export 'package:collection/collection.dart';
 
 export 'package:meal_planner/data/tables.dart';
 export 'package:meal_planner/data/DTOs/meal_with_recipe.dart';
