@@ -10,6 +10,14 @@ class MealScreen extends StatefulWidget {
 }
 
 class _MealScreenState extends MealController {
+  final List<Map<String, dynamic>> _mealTypes = [
+    {'title': 'Śniadanie', 'mealType': MealType.breakfast},
+    {'title': 'II Śniadanie', 'mealType': MealType.brunch},
+    {'title': 'Obiad', 'mealType': MealType.lunch},
+    {'title': 'Przekąska', 'mealType': MealType.snack},
+    {'title': 'Kolacja', 'mealType': MealType.dinner},
+  ];
+
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
@@ -20,17 +28,19 @@ class _MealScreenState extends MealController {
           _isLoading
               ? CircularProgressIndicator()
               : Column(
-            children: [
-              MealRow(title: 'Śniadanie', mealWithRecipe: _mealsWithRecipe[MealType.breakfast], mealCallback: _loadMealsForSelectedDay, selectedDay: _selectedDay, mealType: MealType.breakfast),
-              const Padding(padding: EdgeInsets.only(top: 10)),
-              MealRow(title: 'II Śniadanie', mealWithRecipe: _mealsWithRecipe[MealType.brunch], mealCallback: _loadMealsForSelectedDay, selectedDay: _selectedDay, mealType: MealType.brunch),
-              const Padding(padding: EdgeInsets.only(top: 10)),
-              MealRow(title: 'Obiad', mealWithRecipe: _mealsWithRecipe[MealType.lunch], mealCallback: _loadMealsForSelectedDay, selectedDay: _selectedDay, mealType: MealType.lunch),
-              const Padding(padding: EdgeInsets.only(top: 10)),
-              MealRow(title: 'Przekąska', mealWithRecipe: _mealsWithRecipe[MealType.snack], mealCallback: _loadMealsForSelectedDay, selectedDay: _selectedDay, mealType: MealType.snack),
-              const Padding(padding: EdgeInsets.only(top: 10)),
-              MealRow(title: 'Kolacja', mealWithRecipe: _mealsWithRecipe[MealType.dinner], mealCallback: _loadMealsForSelectedDay, selectedDay: _selectedDay, mealType: MealType.dinner),
-            ],
+            children: _mealTypes.map((meal) {
+              final mealType = meal['mealType'] as MealType;
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: MealRow(
+                  title: meal['title'] as String,
+                  mealWithRecipe: _mealsWithRecipe[mealType],
+                  mealCallback: _loadMealsForSelectedDay,
+                  selectedDay: _selectedDay,
+                  mealType: mealType,
+                ),
+              );
+            }).toList(),
           ),
         ],
       ),

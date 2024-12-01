@@ -1,10 +1,4 @@
-import 'package:drift/drift.dart' hide Column;
-import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:meal_planner/data/database.dart';
-import 'package:meal_planner/data/DTOs/meal_with_recipe.dart';
-
-import '../data/tables.dart';
+import 'package:meal_planner/commons.dart';
 
 class MealRow extends StatefulWidget {
   const MealRow({super.key, required this.title, required this.mealWithRecipe, required this.mealCallback, required this.selectedDay, required this.mealType, });
@@ -20,16 +14,6 @@ class MealRow extends StatefulWidget {
 }
 
 class _MealRowState extends State<MealRow> {
-  List<Recipe>? _allRecipes;
-  List<Recipe>? _filteredRecipes;
-  final TextEditingController _filterController = TextEditingController();
-  bool _isLoading = true;
-
-  @override
-  void initState() {
-    super.initState();
-  }
-
   @override
   Widget build(BuildContext context) {
     return Row(
@@ -83,130 +67,14 @@ class _MealRowState extends State<MealRow> {
     );
   }
 
-  Future<List<Recipe>> _loadAllRecipes() async {
-    return await AppDatabase.instance.getAllRecipes();
-  }
-
-
-
   void _showSelectRecipeDialog() {
-    _isLoading = true;
-    Recipe? selectedRecipe;
-    int servings = 1;
-
     showDialog(
       context: context,
-      builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setState) {
-            if (_isLoading) {
-              _loadAllRecipes().then((recipes) {
-                if(mounted) {
-                  setState(() {
-                    _allRecipes = recipes;
-                    _filteredRecipes = recipes;
-                    _isLoading = false;
-                  });
-                }
-              });
-            }
-
-            void filterRecipes(String query) {
-              setState(() {
-                _filteredRecipes = _allRecipes?.where((recipe) =>
-                    recipe.title.toLowerCase().contains(query.toLowerCase())).toList();
-              });
-            }
-
-            return AlertDialog(
-              title: Text('Wybierz przepis', style: GoogleFonts.poppins()),
-              content: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Row(
-                      children: [
-                        const Text('Liczba porcji'),
-                        IconButton(
-                          onPressed: () {
-                            if (servings > 1) {
-                              setState(() {
-                                servings--;
-                              });
-                            }
-                          },
-                          icon: const Icon(Icons.remove_circle),
-                        ),
-                        Text(servings.toString()),
-                        IconButton(
-                          onPressed: () {
-                            setState(() {
-                              servings++;
-                            });
-                          },
-                          icon: const Icon(Icons.add_circle),
-                        ),
-                      ],
-                    ),
-                    TextField(
-                      controller: _filterController,
-                      decoration: InputDecoration(
-                        labelText: 'Filtruj przepisy',
-                        prefixIcon: Icon(Icons.search),
-                      ),
-                      onChanged: filterRecipes,
-                    ),
-                    SizedBox(height: 10),
-                    _isLoading
-                      ? CircularProgressIndicator()
-                      : SizedBox(
-                        height: 200,
-                        child: SingleChildScrollView(
-                          child: Column(
-                            children: _filteredRecipes!.map((recipe){
-                              return ListTile(
-                                title: Text(recipe.title, style: GoogleFonts.poppins()),
-                                selected: selectedRecipe == recipe,
-                                onTap: () {
-                                  setState(() {
-                                    selectedRecipe = recipe;
-                                  });
-                                },
-                              );
-                            }).toList(),
-                          )
-                        ),
-                      )
-                  ],
-                ),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  child: Text('Anuluj', style: GoogleFonts.poppins(color: Colors.red)),
-                ),
-                ElevatedButton(
-                  onPressed:
-                  selectedRecipe == null
-                    ? null
-                    : () async {
-                      await AppDatabase.instance.insertMeal(MealsCompanion(
-                        date: Value(widget.selectedDay),
-                        mealType: Value(widget.mealType),
-                        recipeId: Value(selectedRecipe!.id),
-                        servings: Value(servings),
-                      ));
-
-                      widget.mealCallback();
-                      Navigator.of(context).pop();
-                    },
-                  child: Text('Dodaj', style: GoogleFonts.poppins()),
-                ),
-              ],
-            );
-          },
-        );
-      },
+      builder: (context) => RecipeSelectionDialog(
+        selectedDay: widget.selectedDay,
+        mealType: widget.mealType,
+        onMealAdded: widget.mealCallback,
+      ),
     );
   }
 
@@ -227,8 +95,8 @@ class _MealRowState extends State<MealRow> {
                   child: Text('Anuluj', style: GoogleFonts.poppins())
               ),
               ElevatedButton(
-                  onPressed: () async {
-                    await AppDatabase.instance.deleteMeal(widget.mealWithRecipe!.id);
+                  onPressed: () {
+                    AppDatabase.instance.deleteMeal(widget.mealWithRecipe!.id);
                     widget.mealCallback();
                     Navigator.pop(context);
                   }, 

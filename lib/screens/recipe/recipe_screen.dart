@@ -3,9 +3,7 @@ import 'package:meal_planner/commons.dart';
 part 'recipe_controller.dart';
 
 class RecipeScreen extends StatefulWidget {
-  final List<Product> allProducts;
-
-  const RecipeScreen({super.key, required this.allProducts});
+  const RecipeScreen({super.key});
 
   @override
   State<StatefulWidget> createState() => _RecipeScreenState();
@@ -90,7 +88,7 @@ class _RecipeScreenState extends RecipeController {
                           context,
                           MaterialPageRoute(
                             builder: (context) => AddOrEditRecipeScreen(
-                              recipe: recipe, allProducts: widget.allProducts,
+                              recipe: recipe,
                             ),
                           ),
                         );
@@ -119,7 +117,7 @@ class _RecipeScreenState extends RecipeController {
             context,
             MaterialPageRoute(
               builder: (context) => AddOrEditRecipeScreen(
-                recipe: null, allProducts: widget.allProducts,
+                recipe: null,
               ),
             ),
           );

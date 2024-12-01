@@ -18,3 +18,4 @@ export 'package:meal_planner/screens/meal/meal_screen.dart';
 export 'package:meal_planner/screens/recipe/recipe_screen.dart';
 export 'package:meal_planner/screens/shopping_list/shopping_list_screen.dart';
 export 'package:meal_planner/utils.dart';
+export 'package:meal_planner/widgets/recipe_selection_dialog.dart';

@@ -6,9 +6,8 @@ part 'add_edit_recipe_controller.dart';
 
 class AddOrEditRecipeScreen extends StatefulWidget {
   final Recipe? recipe;
-  final List<Product> allProducts;
 
-  const AddOrEditRecipeScreen({super.key, this.recipe, required this.allProducts});
+  const AddOrEditRecipeScreen({super.key, this.recipe});
 
   @override
   State<AddOrEditRecipeScreen> createState() => _AddOrEditRecipeScreenState();
@@ -112,7 +111,7 @@ class _AddOrEditRecipeScreenState extends AddEditRecipeController {
                           SizedBox(
                             width: 110,
                             child: Text(
-                                widget.allProducts
+                                _allProducts
                                     .firstWhere((Product product){
                                       return product.id == _recipeProductsCompanion[index].productId.value;})
                                     .name,
@@ -121,7 +120,7 @@ class _AddOrEditRecipeScreenState extends AddEditRecipeController {
                           ),
                           Text(
                                 '${formatter.format(_recipeProductsCompanion[index].quantity.value)} '
-                                    '${widget.allProducts.firstWhere((product) => product.id == _recipeProductsCompanion[index].productId.value).unit}'
+                                    '${_allProducts.firstWhere((product) => product.id == _recipeProductsCompanion[index].productId.value).unit}'
                           ),
                           Spacer(),
                           IconButton(

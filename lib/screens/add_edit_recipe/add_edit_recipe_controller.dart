@@ -7,6 +7,7 @@ abstract class AddEditRecipeController extends State<AddOrEditRecipeScreen>{
   final TextEditingController _instructionController = TextEditingController();
   int _servings = 1;
   List<RecipeProductsCompanion> _recipeProductsCompanion = [];
+  List<Product> _allProducts = [];
 
   NumberFormat formatter = NumberFormat('#.##');
 
@@ -14,6 +15,7 @@ abstract class AddEditRecipeController extends State<AddOrEditRecipeScreen>{
   void initState() {
     super.initState();
 
+    loadAllProducts();
     if(widget.recipe != null){
       _titleController.text = widget.recipe!.title;
       _instructionController.text = (widget.recipe!.instruction ?? '');
@@ -22,12 +24,20 @@ abstract class AddEditRecipeController extends State<AddOrEditRecipeScreen>{
     }
   }
 
+  Future<void> loadAllProducts() async {
+    var allProducts = await db.getAllProducts();
+    setState(() {
+      _allProducts = allProducts;
+    });
+  }
+
   void showAddProductDialog() {
     showProductDialog(
       context: context,
-      allProducts: widget.allProducts,
+      allProducts: _allProducts,
       onAddProduct: addRecipeProduct,
-      dialogTitle: 'Dodaj produkt',
+      dialogTitle: "Dodaj produkt",
+      onCustomProductAdded: loadAllProducts
     );
   }
 

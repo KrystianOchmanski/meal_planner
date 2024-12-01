@@ -2,9 +2,11 @@ part of 'shopping_list_screen.dart';
 
 abstract class ShoppingListController extends State<ShoppingListScreen>{
   final db = AppDatabase.instance;
+  List<Product> _allProducts = [];
 
   @override
   void initState() {
+    loadAllProducts();
     super.initState();
   }
 
@@ -50,12 +52,20 @@ abstract class ShoppingListController extends State<ShoppingListScreen>{
     );
   }
 
+  Future<void> loadAllProducts() async {
+    var allProducts = await db.getAllProducts();
+    setState(() {
+      _allProducts = allProducts;
+    });
+  }
+
   void showAddProductDialog() {
     showProductDialog(
       context: context,
-      allProducts: widget.allProducts,
+      allProducts: _allProducts,
       onAddProduct: addProductToList,
-      dialogTitle: 'Dodaj produkt',
+      dialogTitle: "Dodaj produkt",
+      onCustomProductAdded: loadAllProducts
     );
   }
 

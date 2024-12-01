@@ -3,9 +3,7 @@ import 'package:meal_planner/commons.dart';
 part 'shopping_list_controller.dart';
 
 class ShoppingListScreen extends StatefulWidget {
-  final List<Product> allProducts;
-
-  const ShoppingListScreen({super.key, required this.allProducts});
+  const ShoppingListScreen({super.key});
 
   @override
   State<StatefulWidget> createState() => ShoppingListScreenState();

@@ -16,8 +16,8 @@ class _HomeScreenState extends HomeController {
   Widget build(BuildContext context) {
     screens = [
       MealScreen(),
-      RecipeScreen(allProducts: _allProducts),
-      ShoppingListScreen(allProducts: _allProducts)
+      RecipeScreen(),
+      ShoppingListScreen()
     ];
 
     return Scaffold(
