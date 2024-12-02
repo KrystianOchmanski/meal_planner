@@ -5,12 +5,14 @@ class RecipeSelectionDialog extends StatefulWidget {
   final DateTime selectedDay;
   final MealType mealType;
   final VoidCallback onMealAdded;
+  final MealWithRecipe? meal;
 
   const RecipeSelectionDialog({
     super.key,
     required this.selectedDay,
     required this.mealType,
     required this.onMealAdded,
+    this.meal
   });
 
   @override
@@ -29,6 +31,8 @@ class _RecipeSelectionDialogState extends State<RecipeSelectionDialog> {
   void initState() {
     super.initState();
     _loadAllRecipes();
+
+    print(selectedRecipe);
   }
 
   Future<void> _loadAllRecipes() async {
@@ -37,6 +41,7 @@ class _RecipeSelectionDialogState extends State<RecipeSelectionDialog> {
       setState(() {
         _allRecipes = recipes;
         _filteredRecipes = recipes;
+        selectedRecipe = _allRecipes?.firstWhereOrNull((recipe) => recipe.id == widget.meal?.recipeId);
         _isLoading = false;
       });
     }

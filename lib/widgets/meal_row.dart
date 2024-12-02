@@ -19,36 +19,45 @@ class _MealRowState extends State<MealRow> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Padding(
-          padding: const EdgeInsets.only(left: 15),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                widget.title,
-                style: GoogleFonts.poppins(
-                    fontWeight: FontWeight.w600, fontSize: 22),
-              ),
-              widget.mealWithRecipe == null
-              ? Text(
-                  'Nie wybrano',
+        GestureDetector(
+          onTap: (){
+            if(widget.mealWithRecipe != null){
+              _showSelectRecipeDialog(widget.mealWithRecipe);
+            }
+          },
+          child: Padding(
+            padding: const EdgeInsets.only(left: 15),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  widget.title,
                   style: GoogleFonts.poppins(
-                    fontWeight: FontWeight.w300, color: Colors.black54)
-              )
-              : Text(
-                '${widget.mealWithRecipe!.recipeTitle} x ${widget.mealWithRecipe!.servings.toString()}',
-                style: GoogleFonts.poppins(
-                  color: Colors.green,
-                  fontWeight: FontWeight.w400,
-                  fontSize: 18
+                      fontWeight: FontWeight.w600, fontSize: 22),
+                ),
+                widget.mealWithRecipe == null
+                ? Text(
+                    'Nie wybrano',
+                    style: GoogleFonts.poppins(
+                      fontWeight: FontWeight.w300, color: Colors.black54)
                 )
-              )
-            ],
+                : Text(
+                  '${widget.mealWithRecipe!.recipeTitle} x ${widget.mealWithRecipe!.servings.toString()}',
+                  style: GoogleFonts.poppins(
+                    color: Colors.green,
+                    fontWeight: FontWeight.w400,
+                    fontSize: 18
+                  )
+                )
+              ],
+            ),
           ),
         ),
         widget.mealWithRecipe == null
         ? IconButton(
-          onPressed: _showSelectRecipeDialog,
+          onPressed: (){
+            _showSelectRecipeDialog(null);
+          },
           iconSize: 48,
           icon: Icon(
             Icons.add_circle,
@@ -67,7 +76,7 @@ class _MealRowState extends State<MealRow> {
     );
   }
 
-  void _showSelectRecipeDialog() {
+  void _showSelectRecipeDialog(MealWithRecipe? meal) {
     showDialog(
       context: context,
       builder: (context) => RecipeSelectionDialog(

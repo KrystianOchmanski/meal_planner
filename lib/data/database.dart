@@ -185,6 +185,7 @@ class AppDatabase extends _$AppDatabase {
 
       return MealWithRecipe(
         id: meal.id,
+        recipeId: recipe.id,
         date: meal.date,
         mealType: meal.mealType,
         servings: meal.servings,
