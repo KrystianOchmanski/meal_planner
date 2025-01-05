@@ -44,7 +44,7 @@ Meal Planner is a mobile application, designed for meal planning and generating 
 ## Example Screenshots
 
 ### Meal Planning Screen
-![Meal Planning Screen](screenshots/meal_planning_screen.png)
+![Meal Planning Screen](screenshots/meal_planner_screen.png)
 
 ### Recipe Screen
 ![Recipe Screen](screenshots/recipe_screen.png)
@@ -52,13 +52,7 @@ Meal Planner is a mobile application, designed for meal planning and generating 
 ### Shopping List Screen
 ![Shopping List Screen](screenshots/shopping_list_screen.png)
 
-## License
-
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
-
----
-
 ### Author
 
-This project was created as part of an engineering thesis: **"Design and Implementation of a Custom Meal Planning Application with a Shopping List Generation Feature."**
+This project was created as part of an engineering thesis: **"Design and implementation of an original meal planning application with a shopping list generation function."**
 
