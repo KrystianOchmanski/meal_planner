@@ -1,17 +1,64 @@
-# meal_planner
+# Meal Planner
 
-A new Flutter project.
+Meal Planner is a mobile application, designed for meal planning and generating shopping lists. It enables efficient management of recipes, meals, and shopping, supporting a healthy and organized lifestyle.
 
-## Getting Started
+## Features
 
-This project is a starting point for a Flutter application.
+- **Meal Planning**: Set up a meal plan for a selected day.
+- **Recipe Management**: Add, edit, and delete recipes.
+- **Shopping List Generation**: Automatically create shopping lists based on your meal plan.
+- **User-Friendly Interface**: Simple and intuitive interface.
 
-A few resources to get you started if this is your first Flutter project:
+## Technologies
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+- **Flutter**: Framework for building mobile applications.
+- **Drift**: Library for managing local databases.
+- **SQLite**: Local database for storing application data.
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
-# meal_planner
+## Installation
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/KrystianOchmanski/meal_planner
+   ```
+2. Navigate to the project directory:
+   ```bash
+   cd meal_planner
+   ```
+3. Install dependencies:
+   ```bash
+   flutter pub get
+   ```
+4. Run the application on an emulator or physical device:
+   ```bash
+   flutter run
+   ```
+
+## Project Structure
+
+- **lib/**: Main directory containing the application code.
+  - **data/**: Data models and database management.
+  - **screens/**: Application screens.
+  - **widgets/**: Reusable widgets used in the application.
+
+## Example Screenshots
+
+### Meal Planning Screen
+![Meal Planning Screen](screenshots/meal_planning_screen.png)
+
+### Recipe Screen
+![Recipe Screen](screenshots/recipe_screen.png)
+
+### Shopping List Screen
+![Shopping List Screen](screenshots/shopping_list_screen.png)
+
+## License
+
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+
+---
+
+### Author
+
+This project was created as part of an engineering thesis: **"Design and Implementation of a Custom Meal Planning Application with a Shopping List Generation Feature."**
+
